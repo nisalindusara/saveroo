@@ -17,7 +17,13 @@ Saveroo is a free deals and savings app for Sri Lanka (web + PWA, Android, brows
 TypeScript (strict) everywhere. pnpm monorepo. Web: SvelteKit on Cloudflare. API: Hono on Cloudflare Workers. DB/Auth: Supabase (Postgres). Files: Cloudflare R2. Mobile: Expo (React Native). Extension: WXT. Everything must run on free tiers until revenue exists.
 
 ## Commands
-Filled in during milestone M0. Expected: `pnpm dev`, `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm db:migrate`.
+Run from the repo root.
+- `pnpm install`: install everything (first time: copy `apps/web/.env.example` to `apps/web/.env`, same for `apps/api`).
+- `pnpm dev`: web on http://localhost:5173, API on http://localhost:8787.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`: the same checks CI runs on every push.
+- `pnpm build`: production build of web and API.
+- `pnpm db:new <name>`: create a new SQL migration file. `pnpm db:migrate`: apply migrations to the linked Supabase project.
+- `pnpm deploy:api`, `pnpm deploy:web`: deploy to Cloudflare (needs `pnpm exec wrangler login` once).
 
 ## Rules
 - **Simplicity over cleverness.** One way to do each thing: one validation library (zod), one data-fetching pattern, one styling approach. Before adding a second way, stop and ask.

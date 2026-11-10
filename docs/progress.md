@@ -3,15 +3,33 @@
 Last updated: 2026-11-10
 
 ## Current milestone
-**M0 Project setup.** Not started.
+**M0 Project setup.** Code done on branch `chore/m0-project-setup`; waiting on owner account steps to finish (see Next).
+
+M0 "done when" checklist:
+- [x] `pnpm dev` runs web and API locally
+- [x] CI workflow runs lint, typecheck and tests on every push (runs once the branch is pushed to GitHub)
+- [ ] Hello page and `/health` live on free Cloudflare URLs (owner: Cloudflare login, then deploy)
+- [ ] Supabase dev project connected (owner: create project, put keys in `apps/api/.env`)
+- [x] `.env.example` exists (`apps/web/.env.example`, `apps/api/.env.example`)
+- [x] Commands section of `CLAUDE.md` filled in
+- [x] Limit checks recorded (below)
 
 ## Done
 - Planning complete: product, features by release, revenue model, architecture, data model, screens, Release 1 plan, location and alerts rules, Windows setup.
+- 2026-11-10 M0 code: pnpm monorepo (`apps/web` SvelteKit 3 + Tailwind on Cloudflare, `apps/api` Hono Worker with `/health`, `packages/shared` with zod schemas and `t()`), Supabase CLI folder, GitHub Actions CI, root ESLint and TypeScript config. Lint, typecheck, tests (8) and production builds pass locally. Hello page initial JS is about 33 KB gzipped (budget 150 KB).
+- Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: create the GitHub repo `saveroo`, create Cloudflare and Supabase accounts (free), install tools (see `dev-setup-windows.md`).
-2. Owner: unzip this blueprint into the repo and push.
-3. Claude Code: start M0 (see `release-1.md`), including the limit checks listed in `architecture.md`.
+1. Owner: push the branch (`git push -u origin chore/m0-project-setup`) and check that the CI run on GitHub is green.
+2. Owner: create the Supabase projects and a Cloudflare account, then follow `dev-setup-windows.md` section 4 (keys into `.env`, link CLI, deploy API and web).
+3. Claude Code: once both URLs work, tick the last M0 boxes, open the PR and merge; then start M1 (database foundation).
+
+## Limit checks (M0, checked 2026-11-10 on vendor pages)
+- Cloudflare Workers free: 100,000 requests per day (resets 00:00 UTC), 10 ms CPU per request (waiting on network does not count), 64 MiB uncompressed Worker size, 128 MB memory, 50 external subrequests per request.
+- Supabase free: 2 active projects, 500 MB database each, 2 GB disk (read-only at 95%), paused after 1 week of low activity (the planned keep-awake cron matters). Mumbai (ap-south-1) is a listed region; confirm it is offered for free projects in the create-project dropdown, else use Singapore.
+- R2 free: 10 GB-month storage, 1 million Class A (writes) and 10 million Class B (reads) per month, no egress fees.
+- Resend free: 100 emails per day (UTC day), 3,000 per month, no overage on free. This caps email alerts in M8; push and in-app should carry most notifications.
+- Firebase Cloud Messaging and Google Play: check at M11.
 
 ## Decisions log
 - 2026-11-10 Name: Saveroo. Domain saveroo.com to be bought after first revenue; free Cloudflare address until then. Facebook handle owned; Instagram variant such as saverooLK.
@@ -23,6 +41,10 @@ Last updated: 2026-11-10
 - 2026-11-10 Supply: offers posted manually at first; merchants approached after an audience exists.
 - 2026-11-10 Revenue: staged model in `revenue-model.md`; premium only when it clearly pays for itself; aggregated data only, never individual data.
 - 2026-11-10 Legal: owner handles it outside the build; no public users before it is done.
+- 2026-11-10 Kept SvelteKit as planned; dropped the Next.js scaffold.
+- 2026-11-10 Both web and API deploy as Cloudflare Workers (`saveroo-web`, `saveroo-api`); deploys are manual until M12.
+- 2026-11-10 TypeScript pinned to 6.x (SvelteKit 3 and typescript-eslint do not support 7 yet). Supabase CLI kept on 2.x until 3.x has been out a while.
+- 2026-11-10 No Prettier for now (only ESLint). Can be added later if formatting drifts; would be a new dependency.
 
 ## Open items (owner)
 - Buy saveroo.com after revenue starts.
@@ -31,4 +53,4 @@ Last updated: 2026-11-10
 - Legal review of privacy policy and terms.
 
 ## Blockers
-None.
+None. M0 completion needs the owner's Cloudflare and Supabase accounts.

@@ -75,6 +75,10 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 - IDs are UUIDs. Times are UTC in storage. Money is `numeric(12,2)` LKR.
 - All user-facing text goes through `t()`.
 - Every module opens with a 2-3 line comment saying what it does and where it is used.
+- Browser code imports `t()` from `@saveroo/shared/i18n`, not from `@saveroo/shared`, so zod is not shipped to pages.
+- Env vars: the web app declares them in `apps/web/src/env.ts` (zod-validated, read via `$app/env/private`); the API validates its env in `apps/api/src/env.ts`. Local values live in each app's git-ignored `.env`, copied from `.env.example`. Deployed secrets are set with `wrangler secret put`.
+- TypeScript is pinned to 6.x because SvelteKit 3 and typescript-eslint do not support 7 yet.
+- pnpm's minimum release age check stays on: do not add `minimumReleaseAgeExclude` entries; use a version that has been out for a while instead.
 
 ## Verify at setup (limits change)
 Check these on the vendors' pages in milestone M0 and record the result in `progress.md`:
