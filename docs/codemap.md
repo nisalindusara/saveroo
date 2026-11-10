@@ -27,7 +27,8 @@ Status: M0 skeleton (hello page and `/health` only).
 - `apps/api/src/env.ts`: validates Worker env (Supabase URL and secret key)
 - `apps/api/src/health.ts`: `GET /health`, checks Supabase reachability
 - `apps/web/src/env.ts`: web env vars, validated with zod at start; read via `$app/env/private`
+- `apps/web/src/lib/server/api.ts`: `apiFetch()`, the only way web server code calls the API (service binding when deployed, plain fetch in dev)
 - `apps/web/src/routes/+page.server.ts` / `+page.svelte`: M0 hello page showing API and database status
 
 ## Data flow notes
-- Hello page: browser -> `saveroo-web` server load -> `GET {API_URL}/health` -> API checks `{SUPABASE_URL}/auth/v1/health` -> reply validated with `healthResponseSchema` -> page renders status.
+- Hello page: browser -> `saveroo-web` server load -> `apiFetch('/health')` (the `API` service binding to `saveroo-api` when deployed) -> API checks `{SUPABASE_URL}/auth/v1/health` -> reply validated with `healthResponseSchema` -> page renders status.
