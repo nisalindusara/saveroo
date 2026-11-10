@@ -14,6 +14,11 @@
 		"typecheck": "pnpm -r typecheck",
 		"db:new": "supabase migration new",
 		"db:migrate": "supabase db push",
+		"db:start": "supabase start",
+		"db:stop": "supabase stop",
+		"db:reset": "supabase db reset",
+		"db:test": "supabase test db",
+		"db:types": "node scripts/gen-db-types.mjs",
 		"deploy:api": "pnpm --filter @saveroo/api deploy:worker",
 		"deploy:web": "pnpm --filter @saveroo/web deploy:worker"
 	},
