@@ -8,7 +8,7 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
-		"dev": "vite dev --port 5173",
+		"dev": "vite dev --port 5173 --strictPort",
 		"build": "wrangler types && vite build",
 		"preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
