@@ -22,12 +22,11 @@ M0 "done when" checklist:
 
 ## Next
 1. Owner: push the latest commits and check that the CI run on GitHub (Actions tab) is green.
-2. Owner: decide whether to recreate `saveroo-staging` in Singapore (`ap-southeast-1`) or Mumbai (`ap-south-1`). "Automatic" placed it in Sydney (`ap-southeast-2`), which is far from Sri Lanka and adds delay to every database call. The region cannot be changed after creation, and the project is still empty, so now is the cheapest time.
-3. Owner: open the PR for `chore/m0-project-setup`, review and merge into `main`; then Claude Code starts M1 (database foundation).
+2. Owner: open the PR for `chore/m0-project-setup`, review and merge into `main`; then Claude Code starts M1 (database foundation).
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
 - Cloudflare Workers free: 100,000 requests per day (resets 00:00 UTC), 10 ms CPU per request (waiting on network does not count), 64 MiB uncompressed Worker size, 128 MB memory, 50 external subrequests per request.
-- Supabase free: 2 active projects, 500 MB database each, 2 GB disk (read-only at 95%), paused after 1 week of low activity (the planned keep-awake cron matters). Mumbai (ap-south-1) is a listed region; confirm it is offered for free projects in the create-project dropdown, else use Singapore.
+- Supabase free: 2 active projects, 500 MB database each, 2 GB disk (read-only at 95%), paused after 1 week of low activity (the planned keep-awake cron matters). Mumbai (ap-south-1) is available on the free plan, under "Specific regions" in the create-project dropdown (the default "Automatic" picked Sydney).
 - R2 free: 10 GB-month storage, 1 million Class A (writes) and 10 million Class B (reads) per month, no egress fees.
 - Resend free: 100 emails per day (UTC day), 3,000 per month, no overage on free. This caps email alerts in M8; push and in-app should carry most notifications.
 - Firebase Cloud Messaging and Google Play: check at M11.
@@ -45,6 +44,7 @@ M0 "done when" checklist:
 - 2026-11-10 Kept SvelteKit as planned; dropped the Next.js scaffold.
 - 2026-11-10 Both web and API deploy as Cloudflare Workers (`saveroo-web`, `saveroo-api`); deploys are manual until M12.
 - 2026-11-10 Web reaches the API through a Cloudflare service binding (`API` -> `saveroo-api`), not the public URL. Free, and faster than going over the internet. Only staging Supabase project created for now; `saveroo-prod` is created near launch so it does not get paused while idle.
+- 2026-11-10 Supabase region: Mumbai (`ap-south-1`), the closest to Sri Lanka. Staging was first created in Sydney by "Automatic", then deleted and recreated in Mumbai while still empty. Create `saveroo-prod` in Mumbai too.
 - 2026-11-10 TypeScript pinned to 6.x (SvelteKit 3 and typescript-eslint do not support 7 yet). Supabase CLI kept on 2.x until 3.x has been out a while.
 - 2026-11-10 No Prettier for now (only ESLint). Can be added later if formatting drifts; would be a new dependency.
 

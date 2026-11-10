@@ -7,7 +7,7 @@ Commands change over time. Check each against the tool's official page if one fa
 |---|---|---|
 | GitHub | Have it | Create a private repo `saveroo` |
 | Cloudflare | M0 | Free. Skip any payment details |
-| Supabase | M0 | Free. Create two projects: `saveroo-staging`, `saveroo-prod`. Pick the closest region (Mumbai if offered) |
+| Supabase | M0 | Free. `saveroo-staging` now; `saveroo-prod` near launch. Region: do not leave it on "Automatic"; pick South Asia (Mumbai) under specific regions |
 | Resend | M8 | Free email sending |
 | Sentry | M12 | Free tier |
 | Firebase | M11 | Free; for Android push |
