@@ -1,0 +1,29 @@
+{
+	"name": "saveroo",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@12.11.2",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"dev": "pnpm --parallel --filter @saveroo/web --filter @saveroo/api dev",
+		"build": "pnpm -r build",
+		"test": "pnpm -r test",
+		"lint": "eslint .",
+		"typecheck": "pnpm -r typecheck",
+		"db:new": "supabase migration new",
+		"db:migrate": "supabase db push",
+		"deploy:api": "pnpm --filter @saveroo/api deploy:worker",
+		"deploy:web": "pnpm --filter @saveroo/web deploy:worker"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"eslint": "^10.14.0",
+		"eslint-plugin-svelte": "^3.24.1",
+		"globals": "^17.14.0",
+		"supabase": "^2.122.0",
+		"typescript": "~6.0.3",
+		"typescript-eslint": "^8.72.1"
+	}
+}

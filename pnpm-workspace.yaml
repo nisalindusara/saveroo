@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Packages allowed to run install scripts (native binaries for Vite and the Workers runtime).
+allowBuilds:
+  esbuild: true
+  workerd: true
