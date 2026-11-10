@@ -1,0 +1,17 @@
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true,
+		// Build output under .svelte-kit is plain JS and gets pulled in by worker-configuration.d.ts; all our code is TS.
+		"checkJs": false,
+		"types": [
+			"$app/types",
+			"node",
+			"./worker-configuration.d.ts"
+		]
+	},
+	"include": [
+		"src",
+		"vite.config.ts"
+	]
+}

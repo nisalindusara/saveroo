@@ -1,0 +1,18 @@
+// Cloudflare Worker config for the Saveroo web app (SvelteKit, adapter-cloudflare).
+// API_URL points at the deployed API Worker; set it after the first `pnpm deploy:api`.
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "saveroo-web",
+	"compatibility_date": "2026-11-10",
+	"compatibility_flags": ["nodejs_als"],
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare"
+	},
+	"workers_dev": true,
+	"preview_urls": true,
+	"vars": {
+		"API_URL": ""
+	}
+}
