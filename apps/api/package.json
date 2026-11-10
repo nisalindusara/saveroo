@@ -1,0 +1,23 @@
+{
+	"name": "@saveroo/api",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev --port 8787",
+		"build": "wrangler deploy --dry-run --outdir dist",
+		"typecheck": "wrangler types && tsc -p tsconfig.json",
+		"test": "vitest run",
+		"deploy:worker": "wrangler deploy"
+	},
+	"dependencies": {
+		"@saveroo/shared": "workspace:*",
+		"hono": "^4.13.17",
+		"zod": "^4.6.7"
+	},
+	"devDependencies": {
+		"typescript": "~6.0.3",
+		"vitest": "^4.1.8",
+		"wrangler": "^4.153.0"
+	}
+}
