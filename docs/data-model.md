@@ -1,0 +1,59 @@
+# Data model
+
+Postgres on Supabase. Every table has `id uuid pk default gen_random_uuid()` and `created_at timestamptz default now()` (plus `updated_at` where rows are edited). Money is `numeric(12,2)` in LKR. Times are UTC, shown in Asia/Colombo. Row Level Security on every table. The release tag shows when a table is first needed; the schema is designed for all of them.
+
+## Reference data (R1)
+- **categories:** slug unique, name, parent_id fk self, icon, sort_order
+- **brands:** slug unique, name, logo_url
+- **providers:** slug unique, name, type enum(bank, telco, wallet, loyalty, network), logo_url
+- **card_products:** provider_id fk, name, card_type enum(credit, debit, prepaid, loyalty, other), network enum(visa, mastercard, amex, unionpay, local, none)
+
+## Merchants (R1)
+- **merchants:** slug unique, name, description, logo_url, cover_url, website_url, domains text[] (used by share-to-Saveroo), phone, primary_category_id fk, is_online, has_physical_stores, is_verified, status enum(active, hidden)
+- **merchant_branches:** merchant_id fk, name, address, city, district, location geography(Point,4326), opening_hours jsonb, phone, status
+
+## Deals (R1)
+- **deals:** merchant_id fk, slug unique, title, description, category_id fk, brand_id fk null, deal_type enum(percent_off, amount_off, bogo, freebie, cashback, coupon_code, price_drop, bundle, other), discount_percent null, discount_amount_lkr null, max_saving_lkr null, min_spend_lkr null, original_price_lkr null, deal_price_lkr null, terms, how_to_redeem, channel enum(in_store, online, both), source_url, proof_image_url, affiliate_url null, status enum(draft, pending, live, paused, expired, rejected), verification enum(verified, community, unverified), origin enum(admin, community, merchant), starts_at, ends_at null, last_checked_at, recheck_due_at, is_featured, featured_until null, notified_at null (set when the matching worker has processed it), created_by fk profiles, view_count
+  - Indexes: (status, ends_at); (merchant_id); (category_id, status); GIN full-text on title and description; trigram on title.
+- **deal_branches:** deal_id, branch_id. No rows means all branches.
+- **deal_eligibility:** deal_id, provider_id fk, card_product_id fk null (null means any card of that provider), card_type null, note. No rows means open to everyone.
+- **deal_schedules:** deal_id, days_of_week int[] (1=Mon to 7=Sun), start_time null, end_time null, valid_from date null, valid_to date null, blackout_dates date[], note. No rows means every day between starts_at and ends_at.
+- **coupon_codes:** deal_id, code, kind enum(copy, show_qr, auto_apply), usage_limit null, used_count, valid_from, valid_to
+
+## Users and personalization (R1)
+- **profiles:** id = auth user id, display_name, avatar_url, district, language default 'en', role enum(user, moderator, admin), onboarding_done, points default 0
+- **user_wallet:** user_id, provider_id, card_product_id null. Unique on the three.
+- **follows:** user_id, target_type enum(merchant, brand, category, keyword, product), target_id null, keyword null
+- **saved_deals:** user_id, deal_id, remind_before_expiry default true
+- **reminders:** user_id, deal_id, kind enum(valid_day, expiry), remind_at, sent_at null
+- **notifications:** user_id, type enum(new_deal, reminder, expiring, system), title, body, deal_id null, data jsonb, read_at null
+- **notification_deliveries:** notification_id, channel enum(inapp, push, email, whatsapp), status enum(queued, sent, failed, skipped), sent_at, error
+- **notification_preferences:** user_id pk, push, email, inapp default true, quiet_start, quiet_end, daily_cap default 5, digest enum(instant, daily, weekly)
+- **push_tokens:** user_id, token unique, platform enum(web, android, ios), last_seen_at
+- **consents:** user_id, kind enum(notifications, location, analytics, marketing), granted, granted_at
+- **store_requests:** user_id null, url_or_domain, created_at (demand signal for stores to add)
+
+## Operations (R1)
+- **events:** id bigint identity, user_id null, anonymous_id, name, entity_type null, entity_id null, props jsonb, platform enum(web, android, ios, extension), app_version, created_at. Index (name, created_at). Plan monthly partitions and a retention period later.
+- **audit_log:** actor_id, action, entity_type, entity_id, diff jsonb
+- **feature_flags:** key unique, enabled, rollout_percent
+
+## Later tables (designed now, built when needed)
+- **R2:** products, deal_products, price_points (price history), wishlist_items, deal_reports, deal_votes, deal_comments, points_ledger, redemptions, shopping_sessions
+- **R3:** referrals, badges, user_badges
+- **R4:** merchant_users, campaigns (featured and sponsored), invoices
+- **R5:** cashback_transactions, payouts, insight aggregates
+
+## Key logic
+
+### Usable deal
+A deal is usable by a user when: status is live; now is between starts_at and ends_at; and either the deal has no `deal_eligibility` rows or at least one row matches the user's `user_wallet` (provider matches; if a card product is specified it matches; if a card type is specified it matches).
+
+### Next valid date
+Computed in Asia/Colombo from `deal_schedules`: the earliest date from today onward that matches days_of_week, lies within valid_from and valid_to, is not in blackout_dates, and is before ends_at. If none exists, show "no upcoming date". Unit-test this thoroughly, including month ends and blackout dates.
+
+### Best deal for a merchant (for one user)
+Among the user's usable deals at that merchant, rank by: valid today first, then max_saving_lkr, then discount_percent, then ends_at soonest. Show the card to use alongside it.
+
+### Privacy rules in the schema
+- No table stores raw GPS history. Nearby queries use coordinates sent with the request and discard them. Shopping Mode sessions (R2) store only start, end and the merchants the user chose to open.
