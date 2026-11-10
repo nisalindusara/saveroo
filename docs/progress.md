@@ -22,7 +22,7 @@ M0 "done when" checklist:
 
 ## Next
 1. Owner: push the latest commits and check that the CI run on GitHub (Actions tab) is green.
-2. Owner: tell Claude Code which Supabase region was chosen, so it can be recorded here.
+2. Owner: decide whether to recreate `saveroo-staging` in Singapore (`ap-southeast-1`) or Mumbai (`ap-south-1`). "Automatic" placed it in Sydney (`ap-southeast-2`), which is far from Sri Lanka and adds delay to every database call. The region cannot be changed after creation, and the project is still empty, so now is the cheapest time.
 3. Owner: open the PR for `chore/m0-project-setup`, review and merge into `main`; then Claude Code starts M1 (database foundation).
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
