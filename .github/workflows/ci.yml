@@ -21,3 +21,24 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+
+  # Starts a throwaway Supabase database, applies every migration from empty, loads the seed,
+  # runs the database tests and checks the generated types in packages/shared are up to date.
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start database only (applies migrations and seed)
+        run: pnpm exec supabase start -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - run: pnpm db:test
+      - name: Generated types are up to date
+        run: |
+          pnpm db:types
+          git diff --exit-code packages/shared/src/database.types.ts

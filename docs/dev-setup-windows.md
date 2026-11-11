@@ -29,6 +29,7 @@ corepack prepare pnpm@latest --activate
 ```
 - Wrangler (Cloudflare) and the Supabase CLI come with the repo: after `pnpm install`, run them as `pnpm exec wrangler ...` and `pnpm exec supabase ...`. No global install needed.
 - Claude Code: follow the current install instructions in the Claude Code docs, then run `claude` inside the repo folder.
+- Docker Desktop (from M1, for the local database): `winget install Docker.DockerDesktop` in an administrator PowerShell, restart, open Docker Desktop and skip sign-in. On an 8 GB PC, limit WSL memory: create `%UserProfile%\.wslconfig` with the lines `[wsl2]` and `memory=3GB`, then restart Docker. Quit Docker from the tray icon when not working on the database. The first `pnpm db:start` downloads about 5.5 GB of images, once.
 - Android Studio (emulator and SDK): install at M11, not before.
 
 ## 3. First-time repo setup

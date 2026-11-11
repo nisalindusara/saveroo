@@ -44,6 +44,27 @@ Postgres on Supabase. Every table has `id uuid pk default gen_random_uuid()` and
 - **R4:** merchant_users, campaigns (featured and sponsored), invoices
 - **R5:** cashback_transactions, payouts, insight aggregates
 
+## As built (M1)
+R1 tables live in `supabase/migrations` (one file per area). Details beyond the lists above:
+- Shared types: `slug` (lowercase words joined by hyphens) and `lkr` (`numeric(12,2)`, never negative). Enum names: `provider_type`, `card_type`, `card_network`, `merchant_status` (also used for branch status), `deal_type`, `deal_channel`, `deal_status`, `deal_verification`, `deal_origin`, `coupon_kind`, `user_role`, `follow_target`, `reminder_kind`, `notification_type`, `notification_channel`, `delivery_status`, `digest_frequency`, `app_platform` (push tokens and events), `consent_kind`.
+- Extra rules: card product names are unique per provider; `discount_percent` is above 0 and at most 100; a deal's `ends_at` is after `starts_at`; `days_of_week` only holds 1-7; a follow has either a keyword or a target, never both; one wallet row per user, provider and card; one consent row per user and kind.
+- Deletes: removing a user removes all their personal rows. Deals keep their merchant (a merchant with deals cannot be deleted; hide it instead). Removing a deal removes its branches, eligibility, schedules and coupons.
+- `deals.search` is a generated full-text column (`simple` config, so words are kept as typed for mixed-language text).
+- PostGIS and pg_trgm live in the `extensions` schema.
+
+### Who can read and write (Row Level Security)
+| Tables | Visitors and signed-in users | Owner of the row |
+|---|---|---|
+| categories, brands, providers, card_products | read | |
+| merchants, merchant_branches | read active ones | |
+| deals, deal_branches, deal_eligibility, deal_schedules, coupon_codes | read when the deal is live and its merchant is active | |
+| profiles | | read; edit name, avatar, district, language, onboarding (never role or points) |
+| user_wallet, follows, saved_deals, reminders, notification_preferences, push_tokens, consents | | read, add, change, delete |
+| notifications | | read, mark read, delete |
+| notification_deliveries, store_requests, events, audit_log, feature_flags | none (API only) | |
+
+All writes not listed go through the API, which uses the service key. Tests in `supabase/tests/database` check these rules.
+
 ## Key logic
 
 ### Usable deal
