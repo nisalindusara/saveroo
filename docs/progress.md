@@ -3,7 +3,7 @@
 Last updated: 2026-11-11
 
 ## Current milestone
-**M3 Admin posting tool.** Code done on branch `feat/m3-admin` (CI green). Staging: database and API updated (expiry cron live); website uploaded as a preview (`https://m3-admin-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Waiting on the owner's browser test.
+**M3 Admin posting tool.** All "done when" items met on branch `feat/m3-admin` (CI green) and live on staging; owner approved. Waiting on owner merge.
 
 M3 "done when" checklist:
 - [x] Admin can create a merchant with branches and a deal with eligible cards, Tuesday-only schedule, coupon code and images, preview it and publish it: verified end to end through the website forms against local Supabase
@@ -11,8 +11,8 @@ M3 "done when" checklist:
 - [x] A deal past its end date becomes expired within 10 minutes: cron every 5 minutes, verified locally by triggering the job; database test
 - [x] The recheck list shows deals due for checking ("Still running" moves the next check 14 days on)
 - [x] Also built: CSV import with per-row error report, duplicate warnings, dashboard
-- [ ] Owner tries it in a real browser on the preview (image resize runs in the browser and was not testable from the command line)
-- [ ] Website promoted to live (`pnpm deploy:web`)
+- [x] Owner tried it in a real browser: created a merchant and a deal with a photo; reported two issues (saving fields per deal type, CSV import), both fixed; owner approved
+- [x] Website live (`pnpm deploy:web`); smoke-tested: visitors sent to log in from admin pages, cross-site form posts blocked
 
 ## Done
 - 2026-11-11 M3 code: admin database functions (atomic saves with audit, status rules, recheck, expiry, duplicates, bulk import, slugs), public `media` bucket, `deals.image_url`; API `/admin/*` (merchants, deals, images, CSV import, dashboard, recheck, reference, audit) and 5-minute cron; web admin pages (dashboard, merchants, deal form with cards/days/coupons/images, preview, recheck, import, change log). Tests: 54 database, 15 API, 2 web, 24 shared.
@@ -27,8 +27,8 @@ M3 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: on the M3 preview address, create a merchant and a deal with a real photo, publish it, look at the preview, try the CSV example file. Report back.
-2. Claude Code: promote the website, tick the boxes; owner reviews and merges the PR for `feat/m3-admin`. Then M4 (public API).
+1. Owner: open the PR for `feat/m3-admin`, review and merge into `main`.
+2. Claude Code: start M4 (public API: feed, search, category, merchant and deal endpoints with cursor paging and edge caching).
 3. Owner: check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists. M3 has no screen for editing banks, cards or categories (not in its scope); decide: corrections as a database migration made by Claude Code, or a small reference-data screen later.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
