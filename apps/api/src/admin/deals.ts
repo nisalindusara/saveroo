@@ -107,6 +107,26 @@ export const deals = new Hono<AuthEnv>()
 		return c.json(body);
 	})
 
+	// Open deals at the same merchant with a similar title (shown as a warning on the deal page).
+	.get('/:id/duplicates', async (c) => {
+		const db = c.get('db');
+		const { data: deal, error } = await db
+			.from('deals')
+			.select('merchant_id, title')
+			.eq('id', c.req.param('id'))
+			.maybeSingle();
+		if (error) return dbErrorResponse(c, error);
+		if (!deal) return errorResponse(c, 404, 'deal_not_found', 'Deal not found.');
+		const { data: dupes, error: dupesError } = await db.rpc('admin_find_duplicate_deals', {
+			p_merchant_id: deal.merchant_id,
+			p_title: deal.title,
+			p_exclude_id: c.req.param('id')
+		});
+		if (dupesError) return dbErrorResponse(c, dupesError);
+		const body: ApiResponse<DuplicateDeal[]> = { data: (dupes ?? []) as DuplicateDeal[], error: null };
+		return c.json(body);
+	})
+
 	.post('/', async (c) => {
 		const input = await readJson(c, dealInputSchema);
 		if (!input.ok) return input.response;
