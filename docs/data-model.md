@@ -52,6 +52,7 @@ R1 tables live in `supabase/migrations` (one file per area). Details beyond the 
 - `deals.search` is a generated full-text column (`simple` config, so words are kept as typed for mixed-language text).
 - PostGIS and pg_trgm live in the `extensions` schema.
 - Images (M3): `merchants.logo_url`, `merchants.cover_url`, `deals.image_url` and `deals.proof_image_url` hold an image key such as `deals/2026-11/a1b2c3d4e5f6a7b8`, not a full address. Files are `<key>-320.webp`, `-640.webp` and `-1280.webp` in the public Supabase Storage bucket `media`.
+- Saving fields by deal type (M3, `SAVING_FIELDS` in `packages/shared/src/admin.ts`): percent_off uses discount_percent, max_saving_lkr, min_spend_lkr; amount_off uses discount_amount_lkr, min_spend_lkr; cashback and coupon_code use percent or amount, max saving, min spend; price_drop and bundle use original_price_lkr and deal_price_lkr; bogo, freebie and other use min_spend_lkr. The API clears the fields that do not apply.
 - Admin writes (M3) go through database functions that also write `audit_log`; see `architecture.md`, "Admin tool".
 
 ### Who can read and write (Row Level Security)
