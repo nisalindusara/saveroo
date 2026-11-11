@@ -13,7 +13,7 @@
 		"lint": "eslint .",
 		"typecheck": "pnpm -r typecheck",
 		"db:new": "supabase migration new",
-		"db:migrate": "supabase db push",
+		"db:migrate": "supabase db push --linked",
 		"db:start": "supabase start",
 		"db:stop": "supabase stop",
 		"db:reset": "supabase db reset",
