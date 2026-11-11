@@ -11,6 +11,39 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('media', 'media', true, 1048576, array['image/webp'])
 on conflict (id) do nothing;
 
+-- A free slug made from text: "50% off Tuesdays!" -> "50-off-tuesdays", then "-2", "-3" if taken.
+-- p_table is 'deals' or 'merchants'; p_exclude skips the row being edited.
+create or replace function public.make_slug(p_text text, p_table text, p_exclude uuid default null)
+returns text
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  v_base text := trim(both '-' from left(
+    trim(both '-' from regexp_replace(lower(coalesce(p_text, '')), '[^a-z0-9]+', '-', 'g')), 80));
+  v_slug text;
+  v_n int := 1;
+  v_taken boolean;
+begin
+  if v_base = '' then
+    v_base := case p_table when 'deals' then 'deal' else 'merchant' end;
+  end if;
+  v_slug := v_base;
+  loop
+    if p_table = 'deals' then
+      select exists (select 1 from public.deals where slug = v_slug and id is distinct from p_exclude) into v_taken;
+    else
+      select exists (select 1 from public.merchants where slug = v_slug and id is distinct from p_exclude) into v_taken;
+    end if;
+    exit when not v_taken;
+    v_n := v_n + 1;
+    v_slug := v_base || '-' || v_n;
+  end loop;
+  return v_slug;
+end;
+$$;
+
 -- Full picture of a deal (row plus details) for the audit log.
 create or replace function public.deal_snapshot(p_deal_id uuid)
 returns jsonb
@@ -74,7 +107,7 @@ begin
     insert into public.merchants (
       slug, name, description, logo_url, cover_url, website_url, domains, phone,
       primary_category_id, is_online, has_physical_stores, is_verified, status)
-    select r.slug, r.name, r.description, r.logo_url, r.cover_url, r.website_url,
+    select coalesce(r.slug, public.make_slug(r.name, 'merchants')), r.name, r.description, r.logo_url, r.cover_url, r.website_url,
       coalesce(r.domains, '{}'), r.phone, r.primary_category_id, coalesce(r.is_online, false),
       coalesce(r.has_physical_stores, true), coalesce(r.is_verified, false), coalesce(r.status, 'active')
     from jsonb_populate_record(null::public.merchants, p_merchant) r
@@ -85,7 +118,7 @@ begin
       raise exception 'merchant_not_found' using errcode = 'P0002';
     end if;
     update public.merchants m set
-      slug = r.slug, name = r.name, description = r.description, logo_url = r.logo_url,
+      slug = coalesce(r.slug, m.slug), name = r.name, description = r.description, logo_url = r.logo_url,
       cover_url = r.cover_url, website_url = r.website_url, domains = coalesce(r.domains, '{}'),
       phone = r.phone, primary_category_id = r.primary_category_id,
       is_online = coalesce(r.is_online, false), has_physical_stores = coalesce(r.has_physical_stores, true),
@@ -153,7 +186,7 @@ begin
       discount_amount_lkr, max_saving_lkr, min_spend_lkr, original_price_lkr, deal_price_lkr, terms,
       how_to_redeem, channel, source_url, proof_image_url, image_url, affiliate_url, verification,
       starts_at, ends_at, is_featured, featured_until, created_by, origin, status)
-    select r.merchant_id, r.slug, r.title, r.description, r.category_id, r.brand_id, r.deal_type,
+    select r.merchant_id, coalesce(r.slug, public.make_slug(r.title, 'deals')), r.title, r.description, r.category_id, r.brand_id, r.deal_type,
       r.discount_percent, r.discount_amount_lkr, r.max_saving_lkr, r.min_spend_lkr, r.original_price_lkr,
       r.deal_price_lkr, r.terms, r.how_to_redeem, coalesce(r.channel, 'in_store'), r.source_url,
       r.proof_image_url, r.image_url, r.affiliate_url, coalesce(r.verification, 'unverified'),
@@ -167,7 +200,7 @@ begin
       raise exception 'deal_not_found' using errcode = 'P0002';
     end if;
     update public.deals d set
-      merchant_id = r.merchant_id, slug = r.slug, title = r.title, description = r.description,
+      merchant_id = r.merchant_id, slug = coalesce(r.slug, d.slug), title = r.title, description = r.description,
       category_id = r.category_id, brand_id = r.brand_id, deal_type = r.deal_type,
       discount_percent = r.discount_percent, discount_amount_lkr = r.discount_amount_lkr,
       max_saving_lkr = r.max_saving_lkr, min_spend_lkr = r.min_spend_lkr,
@@ -361,6 +394,7 @@ $$;
 -- Only the API (service role) may call these.
 revoke execute on function public.admin_import_deals(uuid, jsonb) from public, anon, authenticated;
 grant execute on function public.admin_import_deals(uuid, jsonb) to service_role;
+revoke execute on function public.make_slug(text, text, uuid) from public, anon, authenticated;
 revoke execute on function public.deal_snapshot(uuid) from public, anon, authenticated;
 revoke execute on function public.merchant_snapshot(uuid) from public, anon, authenticated;
 revoke execute on function public.admin_save_merchant(uuid, jsonb, jsonb) from public, anon, authenticated;
@@ -369,6 +403,7 @@ revoke execute on function public.admin_set_deal_status(uuid, uuid, public.deal_
 revoke execute on function public.admin_mark_deal_checked(uuid, uuid, int) from public, anon, authenticated;
 revoke execute on function public.expire_deals() from public, anon, authenticated;
 revoke execute on function public.admin_find_duplicate_deals(uuid, text, uuid) from public, anon, authenticated;
+grant execute on function public.make_slug(text, text, uuid) to service_role;
 grant execute on function public.deal_snapshot(uuid) to service_role;
 grant execute on function public.merchant_snapshot(uuid) to service_role;
 grant execute on function public.admin_save_merchant(uuid, jsonb, jsonb) to service_role;

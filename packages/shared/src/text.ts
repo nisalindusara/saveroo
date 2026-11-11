@@ -1,18 +1,5 @@
-// Small text helpers: slugs for web addresses and a CSV reader.
-// Used by the API (default slugs, CSV import) and the admin forms.
-
-/** "Keells Super – Nugegoda!" -> "keells-super-nugegoda". Empty if nothing usable remains. */
-export function slugify(text: string, maxLength = 80): string {
-	return text
-		.normalize('NFKD')
-		.replace(/[̀-ͯ]/g, '')
-		.toLowerCase()
-		.replace(/&/g, ' and ')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '')
-		.slice(0, maxLength)
-		.replace(/-+$/g, '');
-}
+// CSV reader for the admin deal import.
+// Used by the API import endpoint (slugs are made by the database, see make_slug).
 
 /** Parses CSV text (comma separated, double-quoted fields, "" for a quote) into rows of cells. */
 export function parseCsv(text: string): string[][] {

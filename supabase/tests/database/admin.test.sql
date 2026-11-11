@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(29);
 
 -- An admin user (profile comes from the sign-up trigger).
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ad', 'admin@test.saveroo');
@@ -147,6 +147,16 @@ select throws_ok(
 );
 select is((select count(*)::int from public.deals where slug = 'import-three'), 0,
   'a failed import saves none of its deals');
+
+-- Slugs: made from the title when missing, numbered when taken.
+insert into t values ('auto-slug', public.admin_save_deal(null,
+  jsonb_build_object('merchant_id', (select id from t where key = 'merchant'), 'title', 'Import one!', 'deal_type', 'other'),
+  '{}', '[]', '[]', '[]'));
+select is(
+  (select slug::text from public.deals where id = (select id from t where key = 'auto-slug')),
+  'import-one-2', 'a missing slug is made from the title and numbered when taken'
+);
+select is(public.make_slug('කීල්ස්', 'merchants'), 'merchant', 'text with no Latin letters falls back to a generic slug');
 
 -- Only the API may call the admin functions.
 select ok(

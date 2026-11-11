@@ -584,6 +584,9 @@ isOneToOne: false
 "is_public_deal":
 { Args: { "p_deal_id": string }; Returns: boolean
                            },
+"make_slug":
+{ Args: { "p_exclude"?: string,"p_table": string,"p_text": string }; Returns: string
+                           },
 "merchant_snapshot":
 { Args: { "p_merchant_id": string }; Returns: Json
                            }
