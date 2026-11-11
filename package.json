@@ -20,7 +20,8 @@
 		"db:test": "supabase test db",
 		"db:types": "node scripts/gen-db-types.mjs",
 		"deploy:api": "pnpm --filter @saveroo/api deploy:worker",
-		"deploy:web": "pnpm --filter @saveroo/web deploy:worker"
+		"deploy:web": "pnpm --filter @saveroo/web deploy:worker",
+		"user:role": "pnpm --filter @saveroo/api user:role"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

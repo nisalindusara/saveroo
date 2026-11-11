@@ -8,10 +8,12 @@
 		"build": "wrangler deploy --dry-run --outdir dist",
 		"typecheck": "wrangler types && tsc -p tsconfig.json",
 		"test": "vitest run",
-		"deploy:worker": "wrangler deploy"
+		"deploy:worker": "wrangler deploy",
+		"user:role": "node --env-file=.env scripts/set-role.mjs"
 	},
 	"dependencies": {
 		"@saveroo/shared": "workspace:*",
+		"@supabase/supabase-js": "~2.118.0",
 		"hono": "^4.13.17",
 		"zod": "^4.6.7"
 	},
