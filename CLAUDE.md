@@ -22,7 +22,8 @@ Run from the repo root.
 - `pnpm dev`: web on http://localhost:5173, API on http://localhost:8787.
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`: the same checks CI runs on every push.
 - `pnpm build`: production build of web and API.
-- `pnpm db:new <name>`: create a new SQL migration file. `pnpm db:migrate`: apply migrations to the linked Supabase project.
+- `pnpm db:new <name>`: create a new SQL migration file. `pnpm db:migrate`: apply migrations to the linked (staging) Supabase project.
+- Local database (needs Docker Desktop running): `pnpm db:start` / `pnpm db:stop`; `pnpm db:reset` rebuilds it from the migrations and seed; `pnpm db:test` runs the database tests; `pnpm db:types` regenerates `packages/shared/src/database.types.ts` (run after every migration; CI fails if it is stale).
 - `pnpm deploy:api`, `pnpm deploy:web`: deploy to Cloudflare (needs `pnpm exec wrangler login` once).
 
 ## Rules

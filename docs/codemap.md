@@ -2,7 +2,7 @@
 
 A living map of the codebase. Update it whenever files or modules are added, moved or removed. Keep each entry to one line.
 
-Status: M0 skeleton (hello page and `/health` only).
+Status: M1 database foundation (all R1 tables with RLS; app code is still the M0 hello page and `/health`).
 
 ## Structure
 - `apps/web`: SvelteKit app (public pages, user app, `/admin`), deployed as Cloudflare Worker `saveroo-web`
@@ -11,7 +11,9 @@ Status: M0 skeleton (hello page and `/health` only).
 - `apps/extension`: WXT extension (R2, not created yet)
 - `packages/shared`: zod schemas, types, constants, `t()` helper (API client added in M4)
 - `supabase/config.toml`: Supabase CLI settings; `supabase/migrations`: SQL schema changes; `supabase/seed`: reference data (`*.sql`)
-- `.github/workflows/ci.yml`: lint, typecheck, tests on every push
+- `supabase/tests/database`: pgTAP tests for Row Level Security and seed data (`pnpm db:test`)
+- `scripts/gen-db-types.mjs`: writes generated database types into `packages/shared` (`pnpm db:types`)
+- `.github/workflows/ci.yml`: job `check` (lint, typecheck, tests) and job `database` (fresh database from migrations and seed, database tests, generated types up to date) on every push
 
 ## Root config
 - `package.json`: workspace scripts (`dev`, `lint`, `typecheck`, `test`, `db:*`, `deploy:*`)
@@ -22,6 +24,9 @@ Status: M0 skeleton (hello page and `/health` only).
 ## Key modules
 - `packages/shared/src/api.ts`: `{ data, error }` response envelope type and zod schema helper
 - `packages/shared/src/health.ts`: `/health` response schema
+- `packages/shared/src/database.types.ts`: generated `Database` types (tables, enums); never edit by hand
+- `supabase/migrations/*`: schema in order: extensions and helpers, reference data, merchants, profiles, deals, personalization, operations
+- `supabase/seed/*`: categories, providers, card products (card names are placeholders to verify)
 - `packages/shared/src/i18n.ts`: `t()` and the English message table; browser code imports it from `@saveroo/shared/i18n`
 - `apps/api/src/index.ts`: API entry, mounts routes, JSON 404
 - `apps/api/src/env.ts`: validates Worker env (Supabase URL and secret key)
