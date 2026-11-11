@@ -53,6 +53,13 @@ docs/         this documentation
 ## How a request flows
 Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, checks JWT) -> Supabase Postgres. Public reads are cached at the edge. The web app server-renders public pages by calling the same API. Cron triggers run background jobs: expire deals, find users to notify, send reminders, keep the free database awake.
 
+### Sign-in (M2)
+- Web: `apps/web/src/hooks.server.ts` creates a Supabase client per request (`@supabase/ssr`) that keeps the login in HttpOnly cookies. All sign-in steps run on the server (form actions on `/login`, `/auth/callback`, `/logout`), so no auth JavaScript ships to the browser. `locals.getSession()` verifies the token (`getClaims`) before anything trusts it.
+- Email sign-in link and Google both use the PKCE flow and return to `/auth/callback?next=...`; `next` is limited to paths inside the site (`safeNext`).
+- API: `requireUser` (`apps/api/src/auth.ts`) verifies the `Authorization: Bearer` token against Supabase's public signing keys (ES256, fetched from `/auth/v1/.well-known/jwks.json` and cached 10 minutes), checks issuer and audience, then loads the role from `profiles`. `requireAdmin` adds the admin check. The web app passes the user's token to the API through `apiFetch(path, { accessToken })`.
+- New users get a `profiles` row (role `user`) and default `notification_preferences` from the `on_auth_user_created` database trigger. Roles change only with `pnpm user:role <email> <role>` (logged in `audit_log`) or, from M3, the admin tool.
+- The API reads and writes the database only with supabase-js and the secret key (`apps/api/src/db.ts`): the one data-access pattern.
+
 ## Performance budgets (requirements)
 - Largest Contentful Paint at most 2.5 s on a mid-range Android over 4G.
 - Initial JavaScript at most 150 KB gzipped on public pages.

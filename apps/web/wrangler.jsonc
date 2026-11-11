@@ -16,5 +16,8 @@
   "services": [{ "binding": "API", "service": "saveroo-api" }],
   "vars": {
     "API_URL": "https://saveroo-api.paranawithananisal19.workers.dev",
+    // Staging Supabase. The publishable key is public by design (Row Level Security limits it).
+    "SUPABASE_URL": "https://hhhzwfdmrfdmmmmftzoo.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_AdHCyHv98XYTu8g87NaTaQ_mr0Q3TGJ",
   },
 }

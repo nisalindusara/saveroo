@@ -5,9 +5,12 @@ import { env } from 'cloudflare:workers';
 import { dev } from '$app/env';
 import { API_URL } from '$app/env/private';
 
-/** Fetches `path` (for example `/health`) from the API. */
-export function apiFetch(path: string): Promise<Response> {
+/** Fetches `path` (for example `/me`) from the API, as the signed-in user when a token is given. */
+export function apiFetch(path: string, options: { accessToken?: string } = {}): Promise<Response> {
 	const url = `${API_URL}${path}`;
-	const init = { signal: AbortSignal.timeout(5000) };
+	const headers: Record<string, string> = options.accessToken
+		? { Authorization: `Bearer ${options.accessToken}` }
+		: {};
+	const init = { headers, signal: AbortSignal.timeout(5000) };
 	return dev ? fetch(url, init) : env.API.fetch(url, init);
 }
