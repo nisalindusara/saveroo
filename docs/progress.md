@@ -3,16 +3,16 @@
 Last updated: 2026-11-11
 
 ## Current milestone
-**M2 Auth and profiles.** Code done on branch `feat/m2-auth`; staging database and API updated; website uploaded as a preview (`https://m2-auth-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Waiting on owner settings (see Next) and a sign-in test by the owner.
+**M2 Auth and profiles.** All "done when" items met on branch `feat/m2-auth` (CI green) and live on staging; waiting on owner review and merge.
 
 M2 "done when" checklist:
 - [x] Sign up, log out and log in work on web: verified end to end against local Supabase (email link from the local mailbox, session cookie, header, logout)
 - [x] An admin can open `/admin` and a normal user cannot (403); visitors are sent to log in and returned to `/admin` afterwards
-- [ ] Owner signs in on the staging preview with email and Google, makes themselves admin, opens `/admin`
-- [ ] Preview promoted to the live website (`pnpm deploy:web`)
+- [x] Owner signed in on staging with email and with Google (one linked account), made themselves admin with `pnpm user:role`, opened `/admin`
+- [x] Live website updated (`pnpm deploy:web`); smoke-tested: login page, visitor redirect from `/admin`, cross-site form posts blocked
 
 ## Done
-- 2026-11-11 M2 code: sign-in with email link and Google (server-side, cookies via `@supabase/ssr`), `/auth/callback`, `/logout`, header with log in/out, admin-only `/admin`; API `requireUser` (verifies ES256 tokens with Supabase's public keys) and `requireAdmin`, `GET /me`; database trigger creates profile and notification settings on sign-up; `pnpm user:role` with audit log. Tests: 23 database, 12 API, 2 web, 4 shared. Cross-site form posts are rejected (403) in the deployed build. Staging: migration applied, API deployed.
+- 2026-11-11 M2 code: sign-in with email link and Google (server-side, cookies via `@supabase/ssr`), `/auth/callback`, `/logout`, header with log in/out, admin-only `/admin`; API `requireUser` (verifies ES256 tokens with Supabase's public keys) and `requireAdmin`, `GET /me`; database trigger creates profile and notification settings on sign-up; `pnpm user:role` with audit log. Tests: 23 database, 12 API, 2 web, 4 shared. Cross-site form posts are rejected (403) in the deployed build. Staging: migration applied, API and website deployed; Supabase redirect URLs and Google sign-in configured by the owner.
 - 2026-11-11 M1 merged (PR #2).
 - 2026-11-11 M1: R1 schema in 7 migrations (reference data, merchants and branches, profiles, deals and details, personal data, operations), Row Level Security on every table (access table in `data-model.md`), seed data, 18 pgTAP database tests, generated types, CI `database` job. Docker Desktop installed on the owner's PC for the local database.
 - 2026-11-10 M0 done and merged (PR #1): monorepo, CI, hello page and `/health` live on Cloudflare, Supabase staging connected.
@@ -22,10 +22,9 @@ M2 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: Supabase URL settings and Google sign-in setup (`dev-setup-windows.md` section 5).
-2. Owner: on the preview address, sign in with email and with Google; run `pnpm user:role <your email> admin`; open `/admin`. Report back.
-3. Claude Code: promote the website (`pnpm deploy:web`), tick the M2 boxes; owner reviews and merges the PR for `feat/m2-auth`. Then M3 (admin posting tool).
-4. Owner (any time before M3): check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists; corrections are made in the admin tool from M3.
+1. Owner: open the PR for `feat/m2-auth`, review and merge into `main`.
+2. Claude Code: start M3 (admin posting tool).
+3. Owner (any time before M3): check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists; corrections are made in the admin tool from M3.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
 - Cloudflare Workers free: 100,000 requests per day (resets 00:00 UTC), 10 ms CPU per request (waiting on network does not count), 64 MiB uncompressed Worker size, 128 MB memory, 50 external subrequests per request.
