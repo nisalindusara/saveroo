@@ -17,7 +17,7 @@
 | API | Hono on Cloudflare Workers | Tiny and fast; one API for web, mobile and extension; cron triggers for background jobs |
 | Database | Supabase Postgres (+ PostGIS, pg_trgm) | Relational data suits deals, cards, schedules; free plan; Mumbai region if offered, else Singapore |
 | Auth | Supabase Auth | R1: email magic link and Google. Phone OTP later (SMS costs money) |
-| Files | Cloudflare R2 | Free quota; images resized to WebP in the admin browser before upload |
+| Files | Supabase Storage (public `media` bucket) | No payment card needed (R2 asks for one, owner chose not to add one). Free plan: 1 GB stored, about 5 GB uncached + 5 GB cached downloads a month. Images are resized to WebP in the admin browser before upload, get unique names and a one-year cache. Move to R2 or a CDN if downloads approach the limit |
 | Search | Postgres full-text + trigram | Typo tolerant and free; Meilisearch or Typesense later if needed |
 | Cache | Cloudflare Cache API + KV | Hot feeds cached 60 seconds |
 | Email | Resend | Free tier |
@@ -57,8 +57,18 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 - Web: `apps/web/src/hooks.server.ts` creates a Supabase client per request (`@supabase/ssr`) that keeps the login in HttpOnly cookies. All sign-in steps run on the server (form actions on `/login`, `/auth/callback`, `/logout`), so no auth JavaScript ships to the browser. `locals.getSession()` verifies the token (`getClaims`) before anything trusts it.
 - Email sign-in link and Google both use the PKCE flow and return to `/auth/callback?next=...`; `next` is limited to paths inside the site (`safeNext`).
 - API: `requireUser` (`apps/api/src/auth.ts`) verifies the `Authorization: Bearer` token against Supabase's public signing keys (ES256, fetched from `/auth/v1/.well-known/jwks.json` and cached 10 minutes), checks issuer and audience, then loads the role from `profiles`. `requireAdmin` adds the admin check. The web app passes the user's token to the API through `apiFetch(path, { accessToken })`.
-- New users get a `profiles` row (role `user`) and default `notification_preferences` from the `on_auth_user_created` database trigger. Roles change only with `pnpm user:role <email> <role>` (logged in `audit_log`) or, from M3, the admin tool.
+- New users get a `profiles` row (role `user`) and default `notification_preferences` from the `on_auth_user_created` database trigger. Roles change only with `pnpm user:role <email> <role>` (logged in `audit_log`); a role screen in the admin tool can come later.
 - The API reads and writes the database only with supabase-js and the secret key (`apps/api/src/db.ts`): the one data-access pattern.
+
+### Admin tool (M3)
+- Pages under `/admin` (web) call `/admin/*` API endpoints; every API call checks `requireUser` + `requireAdmin`.
+- Writes go through database functions (`admin_save_merchant`, `admin_save_deal`, `admin_set_deal_status`, `admin_mark_deal_checked`, `admin_import_deals`) so a merchant with its branches, or a deal with its cards, days, branches and coupons, is saved all-or-nothing, and each change writes `audit_log` (before/after) in the same transaction. Only the service role may call them.
+- Missing slugs are made in the database (`make_slug`: from the title, then `-2`, `-3`).
+- Status rules: draft/pending/paused -> live (publish sets the first recheck in 14 days; refused if already ended), live -> paused, live/paused -> expired, pending -> rejected, paused/rejected -> draft.
+- Expiry: the API cron (`*/5 * * * *`, `apps/api/src/jobs.ts`) runs `expire_deals()`, so a deal past `ends_at` is expired within 5 minutes; the same call keeps the free database active.
+- Images: the admin's browser resizes to WebP at 320/640/1280 px (thumbnail at most 60 KB); the web passes the upload to `POST /admin/images`, which checks size and format and stores `<key>-<width>.webp` in the `media` bucket with a one-year cache. Columns store the image key; `imageUrl()` builds addresses.
+- Workers free plan allows 50 outgoing requests per request, so bulk work (CSV import) is one database call, not one per row.
+- Admin forms keep their state in Svelte and post one JSON `payload` field to a form action, which calls the API; API errors come back with per-field messages (`error.fields`).
 
 ## Performance budgets (requirements)
 - Largest Contentful Paint at most 2.5 s on a mid-range Android over 4G.
@@ -73,7 +83,7 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 - Supabase service key lives only in the API Worker secrets.
 - Validate every input with zod; check role on every admin route; log admin changes in `audit_log`.
 - Rate limit public and auth endpoints.
-- Supabase free plan has no point-in-time recovery: a scheduled GitHub Action exports the database weekly to R2 (milestone M12).
+- Supabase free plan has no point-in-time recovery: a scheduled GitHub Action exports the database weekly (milestone M12; destination to decide then, since R2 needs a payment card).
 - Two environments: staging and production (two free Supabase projects).
 
 ## Conventions
@@ -92,5 +102,5 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 Check these on the vendors' pages in milestone M0 and record the result in `progress.md`:
 - Cloudflare Workers free plan: request quota, CPU time per request, compressed bundle size.
 - Supabase: free plan limits, pause policy, available regions (is Mumbai on free).
-- R2 free storage and request quota; Resend daily email limit; Firebase Cloud Messaging terms.
+- Supabase Storage free quota (storage and downloads); Resend daily email limit; Firebase Cloud Messaging terms.
 - Google Play developer account requirements (personal vs organization) when it is time to pay.

@@ -3,15 +3,20 @@
 Last updated: 2026-11-11
 
 ## Current milestone
-**M2 Auth and profiles.** All "done when" items met on branch `feat/m2-auth` (CI green) and live on staging; waiting on owner review and merge.
+**M3 Admin posting tool.** Code done on branch `feat/m3-admin` (CI green). Staging: database and API updated (expiry cron live); website uploaded as a preview (`https://m3-admin-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Waiting on the owner's browser test.
 
-M2 "done when" checklist:
-- [x] Sign up, log out and log in work on web: verified end to end against local Supabase (email link from the local mailbox, session cookie, header, logout)
-- [x] An admin can open `/admin` and a normal user cannot (403); visitors are sent to log in and returned to `/admin` afterwards
-- [x] Owner signed in on staging with email and with Google (one linked account), made themselves admin with `pnpm user:role`, opened `/admin`
-- [x] Live website updated (`pnpm deploy:web`); smoke-tested: login page, visitor redirect from `/admin`, cross-site form posts blocked
+M3 "done when" checklist:
+- [x] Admin can create a merchant with branches and a deal with eligible cards, Tuesday-only schedule, coupon code and images, preview it and publish it: verified end to end through the website forms against local Supabase
+- [x] Edits appear in the audit log (change log page, with before/after)
+- [x] A deal past its end date becomes expired within 10 minutes: cron every 5 minutes, verified locally by triggering the job; database test
+- [x] The recheck list shows deals due for checking ("Still running" moves the next check 14 days on)
+- [x] Also built: CSV import with per-row error report, duplicate warnings, dashboard
+- [ ] Owner tries it in a real browser on the preview (image resize runs in the browser and was not testable from the command line)
+- [ ] Website promoted to live (`pnpm deploy:web`)
 
 ## Done
+- 2026-11-11 M3 code: admin database functions (atomic saves with audit, status rules, recheck, expiry, duplicates, bulk import, slugs), public `media` bucket, `deals.image_url`; API `/admin/*` (merchants, deals, images, CSV import, dashboard, recheck, reference, audit) and 5-minute cron; web admin pages (dashboard, merchants, deal form with cards/days/coupons/images, preview, recheck, import, change log). Tests: 54 database, 15 API, 2 web, 24 shared.
+- 2026-11-11 M2 merged (PR #3): email and Google sign-in, profiles, roles, `/me`, admin-only `/admin`.
 - 2026-11-11 M2 code: sign-in with email link and Google (server-side, cookies via `@supabase/ssr`), `/auth/callback`, `/logout`, header with log in/out, admin-only `/admin`; API `requireUser` (verifies ES256 tokens with Supabase's public keys) and `requireAdmin`, `GET /me`; database trigger creates profile and notification settings on sign-up; `pnpm user:role` with audit log. Tests: 23 database, 12 API, 2 web, 4 shared. Cross-site form posts are rejected (403) in the deployed build. Staging: migration applied, API and website deployed; Supabase redirect URLs and Google sign-in configured by the owner.
 - 2026-11-11 M1 merged (PR #2).
 - 2026-11-11 M1: R1 schema in 7 migrations (reference data, merchants and branches, profiles, deals and details, personal data, operations), Row Level Security on every table (access table in `data-model.md`), seed data, 18 pgTAP database tests, generated types, CI `database` job. Docker Desktop installed on the owner's PC for the local database.
@@ -22,14 +27,15 @@ M2 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: open the PR for `feat/m2-auth`, review and merge into `main`.
-2. Claude Code: start M3 (admin posting tool).
-3. Owner (any time before M3): check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists; corrections are made in the admin tool from M3.
+1. Owner: on the M3 preview address, create a merchant and a deal with a real photo, publish it, look at the preview, try the CSV example file. Report back.
+2. Claude Code: promote the website, tick the boxes; owner reviews and merges the PR for `feat/m3-admin`. Then M4 (public API).
+3. Owner: check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists. M3 has no screen for editing banks, cards or categories (not in its scope); decide: corrections as a database migration made by Claude Code, or a small reference-data screen later.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
 - Cloudflare Workers free: 100,000 requests per day (resets 00:00 UTC), 10 ms CPU per request (waiting on network does not count), 64 MiB uncompressed Worker size, 128 MB memory, 50 external subrequests per request.
 - Supabase free: 2 active projects, 500 MB database each, 2 GB disk (read-only at 95%), paused after 1 week of low activity (the planned keep-awake cron matters). Mumbai (ap-south-1) is available on the free plan, under "Specific regions" in the create-project dropdown (the default "Automatic" picked Sydney).
-- R2 free: 10 GB-month storage, 1 million Class A (writes) and 10 million Class B (reads) per month, no egress fees.
+- R2 free: 10 GB-month storage, 1 million Class A (writes) and 10 million Class B (reads) per month, no egress fees (needs a payment card on file; not used, see decisions).
+- Supabase Storage free: 1 GB stored, 5 GB uncached + 5 GB cached downloads a month, no image transformations, 50 MB max upload.
 - Resend free: 100 emails per day (UTC day), 3,000 per month, no overage on free. This caps email alerts in M8; push and in-app should carry most notifications.
 - Firebase Cloud Messaging and Google Play: check at M11.
 
@@ -51,6 +57,9 @@ M2 "done when" checklist:
 - 2026-11-11 Added `@supabase/supabase-js` (web and API) and `@supabase/ssr` (web), owner-approved. The API uses supabase-js for all database access (one pattern). Sign-in runs on the server; no auth JavaScript in the browser.
 - 2026-11-11 First admin is set with `pnpm user:role` (logged in `audit_log`); later role changes move into the admin tool.
 - 2026-11-11 Supabase's built-in email only reaches members of the Supabase organization. Before anyone else signs in, a custom email sender (Resend) is needed, which needs our own domain. Added to open items.
+- 2026-11-11 Images stored in Supabase Storage (public `media` bucket) instead of Cloudflare R2, owner's choice: R2 needs a payment card on file. Free plan: 1 GB and about 10 GB downloads a month; images are small, uniquely named and cached for a year. Revisit if downloads approach the limit. The M12 database backup destination also needs a new choice (was R2).
+- 2026-11-11 Admin writes go through database functions (all-or-nothing, audit in the same transaction); CSV import is one database call because Workers free allows 50 outgoing requests per request.
+- 2026-11-11 Deal image column `deals.image_url` added (not in the original data model; addition only). Image columns store an image key, not a URL.
 - 2026-11-11 Seed card products are generic placeholders (credit Visa, credit Mastercard, debit per bank; NTB Amex; telco loyalty and postpaid) until checked against real product lists.
 - 2026-11-10 Supabase region: Mumbai (`ap-south-1`), the closest to Sri Lanka. Staging was first created in Sydney by "Automatic", then deleted and recreated in Mumbai while still empty. Create `saveroo-prod` in Mumbai too.
 - 2026-11-10 TypeScript pinned to 6.x (SvelteKit 3 and typescript-eslint do not support 7 yet). Supabase CLI kept on 2.x until 3.x has been out a while.
