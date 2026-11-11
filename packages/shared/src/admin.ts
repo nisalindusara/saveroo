@@ -269,7 +269,7 @@ export type AdminDashboard = {
 
 export type AuditEntry = {
 	id: string;
-	actorEmail: string | null;
+	actorName: string | null;
 	action: string;
 	entityType: string;
 	entityId: string | null;

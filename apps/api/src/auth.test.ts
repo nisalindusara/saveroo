@@ -3,7 +3,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
 import { meResponseSchema } from '@saveroo/shared';
-import app from './index';
+import { app } from './index';
 import { clearSigningKeysCache, requireAdmin, requireUser, type AuthEnv } from './auth';
 
 const SUPABASE_URL = 'https://example.supabase.co';

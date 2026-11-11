@@ -4,11 +4,12 @@ import { createMiddleware } from 'hono/factory';
 import { verifyWithJwks } from 'hono/jwt';
 import type { HonoJsonWebKey } from 'hono/utils/jwt/jws';
 import type { Me } from '@saveroo/shared';
-import { getDb } from './db';
+import { getDb, type Db } from './db';
 import { errorResponse } from './errors';
 import { readSupabaseEnv, type Bindings } from './env';
 
-export type AuthEnv = { Bindings: Bindings; Variables: { user: Me } };
+/** `user`: the verified signed-in user. `db`: the API database client (secret key). */
+export type AuthEnv = { Bindings: Bindings; Variables: { user: Me; db: Db } };
 
 // Supabase's public signing keys, fetched once and reused for 10 minutes per Worker instance.
 const KEYS_TTL_MS = 10 * 60 * 1000;
@@ -53,7 +54,8 @@ export const requireUser = createMiddleware<AuthEnv>(async (c, next) => {
 		return errorResponse(c, 401, 'unauthorized', 'Your session has expired. Please sign in again.');
 	}
 
-	const { data: profile, error } = await getDb(supabase)
+	const db = getDb(supabase);
+	const { data: profile, error } = await db
 		.from('profiles')
 		.select('role, display_name, onboarding_done')
 		.eq('id', userId)
@@ -61,6 +63,7 @@ export const requireUser = createMiddleware<AuthEnv>(async (c, next) => {
 	if (error) return errorResponse(c, 500, 'internal', 'Could not load your profile.');
 	if (!profile) return errorResponse(c, 401, 'unauthorized', 'Please sign in again.');
 
+	c.set('db', db);
 	c.set('user', {
 		id: userId,
 		email,
