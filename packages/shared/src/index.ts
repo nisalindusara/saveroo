@@ -4,6 +4,7 @@
 export * from './admin';
 export * from './api';
 export * from './auth';
+export * from './deal-text';
 export type { Database, Json, Tables, TablesInsert, TablesUpdate, Enums } from './database.types';
 export * from './health';
 export * from './i18n';

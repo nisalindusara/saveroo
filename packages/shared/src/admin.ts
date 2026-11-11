@@ -67,8 +67,9 @@ export const branchInputSchema = z
 		address: text(300),
 		city: text(80),
 		district: text(80),
-		lat: z.number().min(5.5).max(10).nullish().transform((v) => v ?? null),
-		lng: z.number().min(79).max(82.5).nullish().transform((v) => v ?? null),
+		// Sri Lanka lies within roughly 5.5-10 N and 79-82.5 E.
+		lat: z.number('Must be a number').min(5.5, 'Must be in Sri Lanka').max(10, 'Must be in Sri Lanka').nullish().transform((v) => v ?? null),
+		lng: z.number('Must be a number').min(79, 'Must be in Sri Lanka').max(82.5, 'Must be in Sri Lanka').nullish().transform((v) => v ?? null),
 		phone: text(40),
 		status: merchantStatusSchema.default('active')
 	})

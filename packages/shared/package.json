@@ -5,7 +5,9 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./i18n": "./src/i18n.ts"
+		"./i18n": "./src/i18n.ts",
+		"./images": "./src/images.ts",
+		"./time": "./src/time.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc -p tsconfig.json",
