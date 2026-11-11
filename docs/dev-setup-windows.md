@@ -57,12 +57,29 @@ Run in the repo folder. Never paste keys into chat.
 6. Give the API its settings: put the Supabase URL into `SUPABASE_URL` in `apps/api/wrangler.jsonc`, run `pnpm --filter @saveroo/api exec wrangler secret put SUPABASE_SECRET_KEY` and paste the key, then `pnpm deploy:api` again.
 7. Put the API address into `API_URL` in `apps/web/wrangler.jsonc`, then `pnpm deploy:web`. Open the printed `saveroo-web` address: it should show API and Database as Connected.
 
-## 5. Starting a build session
+## 5. Sign-in settings (M2, once per Supabase project)
+**Supabase redirect addresses.** Supabase only sends people back to addresses on this list.
+1. Supabase dashboard -> project -> **Authentication** -> **URL Configuration**.
+2. **Site URL:** `https://saveroo-web.paranawithananisal19.workers.dev`
+3. **Redirect URLs**, add each: `https://saveroo-web.paranawithananisal19.workers.dev/**`, `https://*-saveroo-web.paranawithananisal19.workers.dev/**` (preview versions), `http://localhost:5173/**` (local development). Save.
+
+**Google sign-in.**
+1. https://console.cloud.google.com -> create a project named `Saveroo`.
+2. Open **Google Auth Platform** (search "OAuth consent screen") -> **Get started**: app name `Saveroo`, your email as support and contact email, audience **External**. Create.
+3. **Audience** -> **Test users** -> add your own Google address (while the app is in testing, only listed users can sign in; publish it before launch).
+4. **Clients** -> **Create client** -> type **Web application**, name `Saveroo staging`. Under **Authorized redirect URIs** add `https://<project-ref>.supabase.co/auth/v1/callback`. Create, then copy the **Client ID** and **Client secret**.
+5. Supabase -> **Authentication** -> **Sign In / Providers** -> **Google**: switch on, paste the Client ID and Client secret, save. Do not paste them anywhere else.
+
+**Email limits.** Until a custom email sender is set up (needs our own domain), Supabase's built-in email only sends sign-in links to members of your Supabase organization, a few per hour. Fine for testing; must be replaced before other people sign in.
+
+**Make yourself admin** (after signing in once): `pnpm user:role you@example.com admin`.
+
+## 6. Starting a build session
 1. Open a terminal in the repo folder and run `claude`.
 2. Say: "Read CLAUDE.md and docs/progress.md, then start the current milestone."
 3. At the end, ask for the plain-language summary and check `docs/progress.md` was updated.
 
-## 6. Habits that prevent trouble
+## 7. Habits that prevent trouble
 - One milestone per branch. Merge only when its "done when" list passes.
 - Never paste secrets into chat or commit them. Use the `.env` file, which is git-ignored.
 - If the project feels confusing after a few days, read `docs/codemap.md` and ask Claude to refresh it.

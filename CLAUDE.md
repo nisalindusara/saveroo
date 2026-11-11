@@ -25,6 +25,7 @@ Run from the repo root.
 - `pnpm db:new <name>`: create a new SQL migration file. `pnpm db:migrate`: apply migrations to the linked (staging) Supabase project.
 - Local database (needs Docker Desktop running): `pnpm db:start` / `pnpm db:stop`; `pnpm db:reset` rebuilds it from the migrations and seed; `pnpm db:test` runs the database tests; `pnpm db:types` regenerates `packages/shared/src/database.types.ts` (run after every migration; CI fails if it is stale).
 - `pnpm deploy:api`, `pnpm deploy:web`: deploy to Cloudflare (needs `pnpm exec wrangler login` once).
+- `pnpm user:role <email> <user|moderator|admin>`: change a user's role in the Supabase project in `apps/api/.env` (they must have signed in once).
 
 ## Rules
 - **Simplicity over cleverness.** One way to do each thing: one validation library (zod), one data-fetching pattern, one styling approach. Before adding a second way, stop and ask.
