@@ -14,7 +14,7 @@ Saveroo is a free deals and savings app for Sri Lanka (web + PWA, Android, brows
 - Tell the owner in plain language what changed and how to check it. The owner reviews and approves; they do not write code.
 
 ## Stack (details in `docs/architecture.md`)
-TypeScript (strict) everywhere. pnpm monorepo. Web: SvelteKit on Cloudflare. API: Hono on Cloudflare Workers. DB/Auth: Supabase (Postgres). Files: Cloudflare R2. Mobile: Expo (React Native). Extension: WXT. Everything must run on free tiers until revenue exists.
+TypeScript (strict) everywhere. pnpm monorepo. Web: SvelteKit on Cloudflare. API: Hono on Cloudflare Workers. DB/Auth: Supabase (Postgres). Files: Supabase Storage (public "media" bucket). Mobile: Expo (React Native). Extension: WXT. Everything must run on free tiers until revenue exists.
 
 ## Commands
 Run from the repo root.

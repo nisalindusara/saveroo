@@ -2,7 +2,7 @@
 
 A living map of the codebase. Update it whenever files or modules are added, moved or removed. Keep each entry to one line.
 
-Status: M2 sign-in (email link and Google, `/me`, admin-only `/admin`) on top of the M1 database.
+Status: M3 admin tool (merchants, deals, images, CSV import, recheck, change log, expiry job) on top of M2 sign-in and the M1 database.
 
 ## Structure
 - `apps/web`: SvelteKit app (public pages, user app, `/admin`), deployed as Cloudflare Worker `saveroo-web`
@@ -26,6 +26,11 @@ Status: M2 sign-in (email link and Google, `/me`, admin-only `/admin`) on top of
 - `packages/shared/src/health.ts`: `/health` response schema
 - `packages/shared/src/database.types.ts`: generated `Database` types (tables, enums); never edit by hand
 - `packages/shared/src/auth.ts`: login email schema, user role and `/me` response schemas
+- `packages/shared/src/admin.ts`: admin input rules (merchant, branch, deal, cards, schedules, coupons), `issuesToFields`, admin reply types
+- `packages/shared/src/time.ts`: Colombo time helpers (`colomboLocalToUtc`, `utcToColomboLocal`, `formatColombo`); browser-safe import `@saveroo/shared/time`
+- `packages/shared/src/text.ts`: `parseCsv` for the CSV import
+- `packages/shared/src/images.ts`: image widths, size limits, `imageUrl()`; browser-safe import `@saveroo/shared/images`
+- `packages/shared/src/deal-text.ts`: `savingText`, `daysText`, `formatLkr` (admin preview, later public pages)
 - `supabase/migrations/*`: schema in order: extensions and helpers, reference data, merchants, profiles, deals, personalization, operations, profile-on-signup trigger
 - `supabase/seed/*`: categories, providers, card products (card names are placeholders to verify)
 - `packages/shared/src/i18n.ts`: `t()` and the English message table; browser code imports it from `@saveroo/shared/i18n`
@@ -36,17 +41,32 @@ Status: M2 sign-in (email link and Google, `/me`, admin-only `/admin`) on top of
 - `apps/api/src/auth.ts`: `requireUser` (verifies login token, loads role) and `requireAdmin` middleware
 - `apps/api/src/health.ts`: `GET /health`, checks Supabase reachability
 - `apps/api/src/me.ts`: `GET /me`, the signed-in user's id, email, role and profile basics
+- `apps/api/src/validate.ts`: `readJson(c, schema)` validates request bodies (400 with field messages)
+- `apps/api/src/jobs.ts`: cron jobs (every 5 minutes): `expire_deals`
+- `apps/api/src/admin/index.ts`: mounts `/admin/*`, all behind `requireUser` + `requireAdmin`
+- `apps/api/src/admin/overview.ts`: dashboard, recheck queue, reference lists, audit log
+- `apps/api/src/admin/merchants.ts`, `deals.ts`: list, read, save, duplicates, status, mark checked
+- `apps/api/src/admin/images.ts`: stores browser-resized WebP images in the `media` bucket
+- `apps/api/src/admin/import.ts`: CSV deal import (`rowToDeal`, all rows checked, one database call)
+- `apps/api/src/admin/mappers.ts`: API shapes <-> database rows and function arguments
 - `apps/api/scripts/set-role.mjs`: `pnpm user:role <email> <role>`, changes a user's role and logs it
 - `apps/web/src/env.ts`: web env vars (API URL, Supabase URL and publishable key), validated with zod at start; read via `$app/env/private`
 - `apps/web/src/hooks.server.ts`: per-request Supabase client (login cookies) and `locals.getSession()`
-- `apps/web/src/lib/server/api.ts`: `apiFetch(path, { accessToken })`, the only way web server code calls the API (service binding when deployed, plain fetch in dev)
+- `apps/web/src/lib/server/api.ts`: `apiFetch` / `apiCall`, the only way web server code calls the API (service binding when deployed, plain fetch in dev)
 - `apps/web/src/lib/safe-next.ts`: keeps post-login redirects inside the site
 - `apps/web/src/routes/+layout.*`: header with log in / log out (replaced by full navigation in M5)
 - `apps/web/src/routes/login`: email link and Google sign-in; `auth/callback`: finishes sign-in; `logout`: POST to log out
-- `apps/web/src/routes/admin`: admin-only area (guard in `+layout.server.ts`); M3 builds the tools here
+- `apps/web/src/routes/admin`: admin-only area (guard in `+layout.server.ts`)
+- `apps/web/src/lib/server/admin.ts`: `adminSession`, `readPayload`, `failLoad` for admin pages
+- `apps/web/src/lib/admin/resize-image.ts`: browser-side resize to WebP in 3 widths
+- `apps/web/src/lib/components/admin/*`: `DealForm`, `MerchantForm`, `ImageField`, `DealTable`, `StatusBadge`, `Field`
+- `apps/web/src/lib/url.ts`: `withParam` for paging links
+- `apps/web/src/routes/admin/*`: dashboard, `deals` (list, new, `[id]`, `[id]/preview`), `merchants` (list, new, `[id]`), `recheck`, `import`, `audit`, `images` (upload pass-through)
 - `apps/web/src/routes/+page.server.ts` / `+page.svelte`: M0 hello page showing API and database status
 
 ## Data flow notes
+- Admin save: form state -> hidden `payload` JSON -> page action -> `apiCall` -> `/admin/deals` -> zod check -> `admin_save_deal()` (deal + details + audit in one transaction).
+- Image: admin browser resizes -> `/admin/images` (web) -> `POST /admin/images` (API) -> `media` bucket -> key saved on the merchant or deal.
 - Sign-in: `/login` form -> Supabase sends a link (or Google) -> `/auth/callback?code=` swaps it for a session in cookies -> back to `next`.
 - `/admin`: web server reads the session -> `apiFetch('/me', { accessToken })` -> API verifies the token and reads the role -> web shows the page or 403.
 - Hello page: browser -> `saveroo-web` server load -> `apiFetch('/health')` (the `API` service binding to `saveroo-api` when deployed) -> API checks `{SUPABASE_URL}/auth/v1/health` -> reply validated with `healthResponseSchema` -> page renders status.

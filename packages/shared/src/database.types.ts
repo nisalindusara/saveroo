@@ -201,14 +201,14 @@ isOneToOne: false
                   ]
                 },"deals": {
                   Row: {
-                    "affiliate_url": string | null,"brand_id": string | null,"category_id": string | null,"channel": Database["public"]['Enums']["deal_channel"],"created_at": string,"created_by": string | null,"deal_price_lkr": number | null,"deal_type": Database["public"]['Enums']["deal_type"],"description": string | null,"discount_amount_lkr": number | null,"discount_percent": number | null,"ends_at": string | null,"featured_until": string | null,"how_to_redeem": string | null,"id": string,"is_featured": boolean,"last_checked_at": string | null,"max_saving_lkr": number | null,"merchant_id": string,"min_spend_lkr": number | null,"notified_at": string | null,"origin": Database["public"]['Enums']["deal_origin"],"original_price_lkr": number | null,"proof_image_url": string | null,"recheck_due_at": string | null,"search": unknown,"slug": string,"source_url": string | null,"starts_at": string,"status": Database["public"]['Enums']["deal_status"],"terms": string | null,"title": string,"updated_at": string,"verification": Database["public"]['Enums']["deal_verification"],"view_count": number
+                    "affiliate_url": string | null,"brand_id": string | null,"category_id": string | null,"channel": Database["public"]['Enums']["deal_channel"],"created_at": string,"created_by": string | null,"deal_price_lkr": number | null,"deal_type": Database["public"]['Enums']["deal_type"],"description": string | null,"discount_amount_lkr": number | null,"discount_percent": number | null,"ends_at": string | null,"featured_until": string | null,"how_to_redeem": string | null,"id": string,"image_url": string | null,"is_featured": boolean,"last_checked_at": string | null,"max_saving_lkr": number | null,"merchant_id": string,"min_spend_lkr": number | null,"notified_at": string | null,"origin": Database["public"]['Enums']["deal_origin"],"original_price_lkr": number | null,"proof_image_url": string | null,"recheck_due_at": string | null,"search": unknown,"slug": string,"source_url": string | null,"starts_at": string,"status": Database["public"]['Enums']["deal_status"],"terms": string | null,"title": string,"updated_at": string,"verification": Database["public"]['Enums']["deal_verification"],"view_count": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "affiliate_url"?: string | null,"brand_id"?: string | null,"category_id"?: string | null,"channel"?: Database["public"]['Enums']["deal_channel"],"created_at"?: string,"created_by"?: string | null,"deal_price_lkr"?: number | null,"deal_type": Database["public"]['Enums']["deal_type"],"description"?: string | null,"discount_amount_lkr"?: number | null,"discount_percent"?: number | null,"ends_at"?: string | null,"featured_until"?: string | null,"how_to_redeem"?: string | null,"id"?: string,"is_featured"?: boolean,"last_checked_at"?: string | null,"max_saving_lkr"?: number | null,"merchant_id": string,"min_spend_lkr"?: number | null,"notified_at"?: string | null,"origin"?: Database["public"]['Enums']["deal_origin"],"original_price_lkr"?: number | null,"proof_image_url"?: string | null,"recheck_due_at"?: string | null,"search"?: never,"slug": string,"source_url"?: string | null,"starts_at"?: string,"status"?: Database["public"]['Enums']["deal_status"],"terms"?: string | null,"title": string,"updated_at"?: string,"verification"?: Database["public"]['Enums']["deal_verification"],"view_count"?: number
+                    "affiliate_url"?: string | null,"brand_id"?: string | null,"category_id"?: string | null,"channel"?: Database["public"]['Enums']["deal_channel"],"created_at"?: string,"created_by"?: string | null,"deal_price_lkr"?: number | null,"deal_type": Database["public"]['Enums']["deal_type"],"description"?: string | null,"discount_amount_lkr"?: number | null,"discount_percent"?: number | null,"ends_at"?: string | null,"featured_until"?: string | null,"how_to_redeem"?: string | null,"id"?: string,"image_url"?: string | null,"is_featured"?: boolean,"last_checked_at"?: string | null,"max_saving_lkr"?: number | null,"merchant_id": string,"min_spend_lkr"?: number | null,"notified_at"?: string | null,"origin"?: Database["public"]['Enums']["deal_origin"],"original_price_lkr"?: number | null,"proof_image_url"?: string | null,"recheck_due_at"?: string | null,"search"?: never,"slug": string,"source_url"?: string | null,"starts_at"?: string,"status"?: Database["public"]['Enums']["deal_status"],"terms"?: string | null,"title": string,"updated_at"?: string,"verification"?: Database["public"]['Enums']["deal_verification"],"view_count"?: number
                   }
                   Update: {
-                    "affiliate_url"?: string | null,"brand_id"?: string | null,"category_id"?: string | null,"channel"?: Database["public"]['Enums']["deal_channel"],"created_at"?: string,"created_by"?: string | null,"deal_price_lkr"?: number | null,"deal_type"?: Database["public"]['Enums']["deal_type"],"description"?: string | null,"discount_amount_lkr"?: number | null,"discount_percent"?: number | null,"ends_at"?: string | null,"featured_until"?: string | null,"how_to_redeem"?: string | null,"id"?: string,"is_featured"?: boolean,"last_checked_at"?: string | null,"max_saving_lkr"?: number | null,"merchant_id"?: string,"min_spend_lkr"?: number | null,"notified_at"?: string | null,"origin"?: Database["public"]['Enums']["deal_origin"],"original_price_lkr"?: number | null,"proof_image_url"?: string | null,"recheck_due_at"?: string | null,"search"?: never,"slug"?: string,"source_url"?: string | null,"starts_at"?: string,"status"?: Database["public"]['Enums']["deal_status"],"terms"?: string | null,"title"?: string,"updated_at"?: string,"verification"?: Database["public"]['Enums']["deal_verification"],"view_count"?: number
+                    "affiliate_url"?: string | null,"brand_id"?: string | null,"category_id"?: string | null,"channel"?: Database["public"]['Enums']["deal_channel"],"created_at"?: string,"created_by"?: string | null,"deal_price_lkr"?: number | null,"deal_type"?: Database["public"]['Enums']["deal_type"],"description"?: string | null,"discount_amount_lkr"?: number | null,"discount_percent"?: number | null,"ends_at"?: string | null,"featured_until"?: string | null,"how_to_redeem"?: string | null,"id"?: string,"image_url"?: string | null,"is_featured"?: boolean,"last_checked_at"?: string | null,"max_saving_lkr"?: number | null,"merchant_id"?: string,"min_spend_lkr"?: number | null,"notified_at"?: string | null,"origin"?: Database["public"]['Enums']["deal_origin"],"original_price_lkr"?: number | null,"proof_image_url"?: string | null,"recheck_due_at"?: string | null,"search"?: never,"slug"?: string,"source_url"?: string | null,"starts_at"?: string,"status"?: Database["public"]['Enums']["deal_status"],"terms"?: string | null,"title"?: string,"updated_at"?: string,"verification"?: Database["public"]['Enums']["deal_verification"],"view_count"?: number
                   }
                   Relationships: [
                     {
@@ -555,8 +555,40 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "is_public_deal":
+            "admin_find_duplicate_deals":
+{ Args: { "p_exclude_id"?: string,"p_merchant_id": string,"p_title": string }; Returns: {
+              "id": string,"similarity": number,"slug": string,"status": Database["public"]['Enums']["deal_status"],"title": string
+            }[]
+                           },
+"admin_import_deals":
+{ Args: { "p_actor": string,"p_items": Json }; Returns: (string)[]
+                           },
+"admin_mark_deal_checked":
+{ Args: { "p_actor": string,"p_deal_id": string,"p_recheck_days"?: number }; Returns: undefined
+                           },
+"admin_save_deal":
+{ Args: { "p_actor": string,"p_branch_ids": (string)[],"p_coupons": Json,"p_deal": Json,"p_eligibility": Json,"p_schedules": Json }; Returns: string
+                           },
+"admin_save_merchant":
+{ Args: { "p_actor": string,"p_branches": Json,"p_merchant": Json }; Returns: string
+                           },
+"admin_set_deal_status":
+{ Args: { "p_actor": string,"p_deal_id": string,"p_status": Database["public"]['Enums']["deal_status"] }; Returns: undefined
+                           },
+"deal_snapshot":
+{ Args: { "p_deal_id": string }; Returns: Json
+                           },
+"expire_deals":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"is_public_deal":
 { Args: { "p_deal_id": string }; Returns: boolean
+                           },
+"make_slug":
+{ Args: { "p_exclude"?: string,"p_table": string,"p_text": string }; Returns: string
+                           },
+"merchant_snapshot":
+{ Args: { "p_merchant_id": string }; Returns: Json
                            }
           }
           Enums: {

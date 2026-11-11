@@ -1,7 +1,7 @@
 // Tests for GET /health and the not-found envelope.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { healthResponseSchema } from '@saveroo/shared';
-import app from './index';
+import { app } from './index';
 
 const supabaseEnv = { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SECRET_KEY: 'test' };
 

@@ -6,6 +6,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-11-10",
   "workers_dev": true,
+  // Every 5 minutes: expire ended deals (also keeps the free database active).
+  "triggers": { "crons": ["*/5 * * * *"] },
   "vars": {
     "SUPABASE_URL": "https://hhhzwfdmrfdmmmmftzoo.supabase.co",
   },

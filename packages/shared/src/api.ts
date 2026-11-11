@@ -4,7 +4,9 @@ import { z } from 'zod';
 
 export const apiErrorSchema = z.object({
 	code: z.string(),
-	message: z.string()
+	message: z.string(),
+	// For invalid input: field path (e.g. "schedules.0.daysOfWeek") to a short message.
+	fields: z.record(z.string(), z.string()).optional()
 });
 
 export type ApiError = z.infer<typeof apiErrorSchema>;

@@ -13,7 +13,7 @@ Postgres on Supabase. Every table has `id uuid pk default gen_random_uuid()` and
 - **merchant_branches:** merchant_id fk, name, address, city, district, location geography(Point,4326), opening_hours jsonb, phone, status
 
 ## Deals (R1)
-- **deals:** merchant_id fk, slug unique, title, description, category_id fk, brand_id fk null, deal_type enum(percent_off, amount_off, bogo, freebie, cashback, coupon_code, price_drop, bundle, other), discount_percent null, discount_amount_lkr null, max_saving_lkr null, min_spend_lkr null, original_price_lkr null, deal_price_lkr null, terms, how_to_redeem, channel enum(in_store, online, both), source_url, proof_image_url, affiliate_url null, status enum(draft, pending, live, paused, expired, rejected), verification enum(verified, community, unverified), origin enum(admin, community, merchant), starts_at, ends_at null, last_checked_at, recheck_due_at, is_featured, featured_until null, notified_at null (set when the matching worker has processed it), created_by fk profiles, view_count
+- **deals:** merchant_id fk, slug unique, title, description, category_id fk, brand_id fk null, deal_type enum(percent_off, amount_off, bogo, freebie, cashback, coupon_code, price_drop, bundle, other), discount_percent null, discount_amount_lkr null, max_saving_lkr null, min_spend_lkr null, original_price_lkr null, deal_price_lkr null, terms, how_to_redeem, channel enum(in_store, online, both), source_url, proof_image_url, image_url (added M3), affiliate_url null, status enum(draft, pending, live, paused, expired, rejected), verification enum(verified, community, unverified), origin enum(admin, community, merchant), starts_at, ends_at null, last_checked_at, recheck_due_at, is_featured, featured_until null, notified_at null (set when the matching worker has processed it), created_by fk profiles, view_count
   - Indexes: (status, ends_at); (merchant_id); (category_id, status); GIN full-text on title and description; trigram on title.
 - **deal_branches:** deal_id, branch_id. No rows means all branches.
 - **deal_eligibility:** deal_id, provider_id fk, card_product_id fk null (null means any card of that provider), card_type null, note. No rows means open to everyone.
@@ -51,6 +51,9 @@ R1 tables live in `supabase/migrations` (one file per area). Details beyond the 
 - Deletes: removing a user removes all their personal rows. Deals keep their merchant (a merchant with deals cannot be deleted; hide it instead). Removing a deal removes its branches, eligibility, schedules and coupons.
 - `deals.search` is a generated full-text column (`simple` config, so words are kept as typed for mixed-language text).
 - PostGIS and pg_trgm live in the `extensions` schema.
+- Images (M3): `merchants.logo_url`, `merchants.cover_url`, `deals.image_url` and `deals.proof_image_url` hold an image key such as `deals/2026-11/a1b2c3d4e5f6a7b8`, not a full address. Files are `<key>-320.webp`, `-640.webp` and `-1280.webp` in the public Supabase Storage bucket `media`.
+- Saving fields by deal type (M3, `SAVING_FIELDS` in `packages/shared/src/admin.ts`): percent_off uses discount_percent, max_saving_lkr, min_spend_lkr; amount_off uses discount_amount_lkr, min_spend_lkr; cashback and coupon_code use percent or amount, max saving, min spend; price_drop and bundle use original_price_lkr and deal_price_lkr; bogo, freebie and other use min_spend_lkr. The API clears the fields that do not apply.
+- Admin writes (M3) go through database functions that also write `audit_log`; see `architecture.md`, "Admin tool".
 
 ### Who can read and write (Row Level Security)
 | Tables | Visitors and signed-in users | Owner of the row |
