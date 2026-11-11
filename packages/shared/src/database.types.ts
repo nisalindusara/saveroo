@@ -560,6 +560,9 @@ isOneToOne: false
               "id": string,"similarity": number,"slug": string,"status": Database["public"]['Enums']["deal_status"],"title": string
             }[]
                            },
+"admin_import_deals":
+{ Args: { "p_actor": string,"p_items": Json }; Returns: (string)[]
+                           },
 "admin_mark_deal_checked":
 { Args: { "p_actor": string,"p_deal_id": string,"p_recheck_days"?: number }; Returns: undefined
                            },

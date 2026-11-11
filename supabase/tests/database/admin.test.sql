@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(27);
 
 -- An admin user (profile comes from the sign-up trigger).
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ad', 'admin@test.saveroo');
@@ -126,6 +126,27 @@ select throws_ok(
   format($$ select public.admin_set_deal_status(null, %L, 'live') $$, (select id from t where key = 'deal')),
   '22023', 'invalid_status_change', 'an expired deal cannot be published again'
 );
+
+-- CSV import saves several deals in one call, and nothing if one of them is invalid.
+select is(
+  cardinality(public.admin_import_deals('00000000-0000-0000-0000-0000000000ad', jsonb_build_array(
+    jsonb_build_object('deal', jsonb_build_object('merchant_id', (select id from t where key = 'merchant'),
+      'slug', 'import-one', 'title', 'Imported one', 'deal_type', 'other')),
+    jsonb_build_object('deal', jsonb_build_object('merchant_id', (select id from t where key = 'merchant'),
+      'slug', 'import-two', 'title', 'Imported two', 'deal_type', 'other'),
+      'schedules', '[{"days_of_week": [6, 7]}]'::jsonb)))),
+  2, 'import saves two deals in one call'
+);
+select throws_ok(
+  format($$ select public.admin_import_deals(null, %L) $$, jsonb_build_array(
+    jsonb_build_object('deal', jsonb_build_object('merchant_id', (select id from t where key = 'merchant'),
+      'slug', 'import-three', 'title', 'Imported three', 'deal_type', 'other')),
+    jsonb_build_object('deal', jsonb_build_object('merchant_id', (select id from t where key = 'merchant'),
+      'slug', 'import-one', 'title', 'Duplicate slug', 'deal_type', 'other')))),
+  '23505', null, 'an import with a clashing slug fails'
+);
+select is((select count(*)::int from public.deals where slug = 'import-three'), 0,
+  'a failed import saves none of its deals');
 
 -- Only the API may call the admin functions.
 select ok(

@@ -331,7 +331,36 @@ as $$
   limit 5;
 $$;
 
+-- Saves many deals in one call (CSV import), all or nothing. Each item has the same parts as
+-- admin_save_deal: {deal, branch_ids, eligibility, schedules, coupons}. One call keeps the API
+-- under the Workers limit on outgoing requests.
+create or replace function public.admin_import_deals(p_actor uuid, p_items jsonb)
+returns uuid[]
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_item jsonb;
+  v_ids uuid[] := '{}';
+begin
+  for v_item in select * from jsonb_array_elements(p_items) loop
+    v_ids := v_ids || public.admin_save_deal(
+      p_actor,
+      v_item -> 'deal',
+      array(select jsonb_array_elements_text(coalesce(v_item -> 'branch_ids', '[]'))::uuid),
+      v_item -> 'eligibility',
+      v_item -> 'schedules',
+      v_item -> 'coupons'
+    );
+  end loop;
+  return v_ids;
+end;
+$$;
+
 -- Only the API (service role) may call these.
+revoke execute on function public.admin_import_deals(uuid, jsonb) from public, anon, authenticated;
+grant execute on function public.admin_import_deals(uuid, jsonb) to service_role;
 revoke execute on function public.deal_snapshot(uuid) from public, anon, authenticated;
 revoke execute on function public.merchant_snapshot(uuid) from public, anon, authenticated;
 revoke execute on function public.admin_save_merchant(uuid, jsonb, jsonb) from public, anon, authenticated;
