@@ -15,9 +15,7 @@ select is(
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@test.saveroo'),
   ('00000000-0000-0000-0000-00000000000b', 'b@test.saveroo');
-insert into public.profiles (id, display_name) values
-  ('00000000-0000-0000-0000-00000000000a', 'User A'),
-  ('00000000-0000-0000-0000-00000000000b', 'User B');
+-- Profiles are created by the on_auth_user_created trigger (see signup.test.sql).
 insert into public.user_wallet (user_id, provider_id)
 select u.id, p.id
 from (values ('00000000-0000-0000-0000-00000000000a'::uuid),
