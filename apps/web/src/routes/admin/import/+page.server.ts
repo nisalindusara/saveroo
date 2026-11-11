@@ -1,9 +1,25 @@
 // CSV import: upload a CSV file of deals; all rows are created as drafts, or an error list comes back.
+// The page also lists the merchant, bank and category codes (slugs) the file must use.
 import { fail } from '@sveltejs/kit';
-import type { CsvImportResult } from '@saveroo/shared';
+import type { AdminMerchantListItem, AdminReference, CsvImportResult } from '@saveroo/shared';
 import { apiCall } from '#lib/server/api.js';
-import { adminSession } from '#lib/server/admin.js';
-import type { Actions } from './$types';
+import { adminSession, failLoad } from '#lib/server/admin.js';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const session = await adminSession(locals, url.pathname);
+	const [merchants, reference] = await Promise.all([
+		apiCall<AdminMerchantListItem[]>(session, '/admin/merchants'),
+		apiCall<AdminReference>(session, '/admin/reference')
+	]);
+	if (!merchants.data) failLoad(merchants);
+	if (!reference.data) failLoad(reference);
+	return {
+		merchants: merchants.data.map((m) => ({ slug: m.slug, name: m.name })),
+		providers: reference.data.providers.map((p) => ({ slug: p.slug, name: p.name })),
+		categories: reference.data.categories.map((c) => ({ slug: c.slug, name: c.name }))
+	};
+};
 
 export const actions: Actions = {
 	default: async ({ request, locals, url }) => {

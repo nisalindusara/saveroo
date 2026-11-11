@@ -19,6 +19,17 @@ describe('parseCsv', () => {
 		]);
 	});
 
+	it('reads semicolon and tab separated files (Excel in some regions)', () => {
+		expect(parseCsv('title;terms\n"A; B";x\n')).toEqual([
+			['title', 'terms'],
+			['A; B', 'x']
+		]);
+		expect(parseCsv('title\tterms\nA,B\tx')).toEqual([
+			['title', 'terms'],
+			['A,B', 'x']
+		]);
+	});
+
 	it('ignores a byte-order mark from Excel', () => {
 		expect(parseCsv(String.fromCharCode(0xfeff) + 'name\nX')).toEqual([['name'], ['X']]);
 	});

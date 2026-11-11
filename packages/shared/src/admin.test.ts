@@ -42,6 +42,23 @@ describe('dealInputSchema', () => {
 		expect(issuesToFields(bad.error!)).toHaveProperty(['schedules.0.daysOfWeek.0']);
 	});
 
+	it('clears saving fields that do not apply to the deal type', () => {
+		const percent = dealInputSchema.parse({ ...base, discountAmountLkr: 500, maxSavingLkr: 1500, dealPriceLkr: 900 });
+		expect(percent.discountPercent).toBe(50);
+		expect(percent.maxSavingLkr).toBe(1500);
+		expect(percent.discountAmountLkr).toBeNull();
+		expect(percent.dealPriceLkr).toBeNull();
+
+		const amount = dealInputSchema.parse({ ...base, dealType: 'amount_off', discountAmountLkr: 500 });
+		expect(amount.discountPercent).toBeNull();
+		expect(amount.discountAmountLkr).toBe(500);
+	});
+
+	it('requires the deal price for a price drop', () => {
+		const result = dealInputSchema.safeParse({ ...base, dealType: 'price_drop', originalPriceLkr: 1000 });
+		expect(issuesToFields(result.error!)).toHaveProperty('dealPriceLkr');
+	});
+
 	it('rejects image keys that were not produced by an upload', () => {
 		const result = dealInputSchema.safeParse({ ...base, imageKey: '../../etc/passwd' });
 		expect(issuesToFields(result.error!)).toHaveProperty('imageKey');

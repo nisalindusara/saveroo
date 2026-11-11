@@ -1,13 +1,22 @@
 // CSV reader for the admin deal import.
 // Used by the API import endpoint (slugs are made by the database, see make_slug).
 
-/** Parses CSV text (comma separated, double-quoted fields, "" for a quote) into rows of cells. */
+/** The separator used in the first line: comma, or semicolon/tab as Excel saves in some regions. */
+function detectDelimiter(input: string): string {
+	const firstLine = input.split(/\r?\n/, 1)[0] ?? '';
+	const count = (ch: string) => firstLine.split(ch).length - 1;
+	const candidates = [',', ';', '\t'].map((ch) => ({ ch, n: count(ch) }));
+	return candidates.reduce((best, c) => (c.n > best.n ? c : best)).ch;
+}
+
+/** Parses CSV text (double-quoted fields, "" for a quote) into rows of cells. Comma, semicolon or tab separated. */
 export function parseCsv(text: string): string[][] {
 	const rows: string[][] = [];
 	let row: string[] = [];
 	let cell = '';
 	let quoted = false;
 	const input = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+	const delimiter = detectDelimiter(input);
 
 	for (let i = 0; i < input.length; i++) {
 		const ch = input[i];
@@ -22,7 +31,7 @@ export function parseCsv(text: string): string[][] {
 			}
 		} else if (ch === '"' && cell === '') {
 			quoted = true;
-		} else if (ch === ',') {
+		} else if (ch === delimiter) {
 			row.push(cell);
 			cell = '';
 		} else if (ch === '\n' || ch === '\r') {

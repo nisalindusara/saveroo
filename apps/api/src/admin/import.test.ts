@@ -58,12 +58,22 @@ describe('rowToDeal', () => {
 		expect(deal.schedules).toEqual([{ daysOfWeek: [6, 7] }]);
 	});
 
+	it('accepts day-first dates as Excel shows them in Sri Lanka', () => {
+		const deal = rowToDeal(
+			{ merchant_slug: 'scope-cinemas', title: 'X deal', deal_type: 'other', starts: '12/11/2026 09:30', ends: '31/12/2026' },
+			lookups,
+			NOW
+		);
+		expect(deal.startsAt).toBe('2026-11-12T04:00:00.000Z');
+		expect(deal.endsAt).toBe('2026-12-31T18:29:00.000Z');
+	});
+
 	it('names the problem for unknown merchants, providers, days and bad numbers', () => {
 		const row = { merchant_slug: 'scope-cinemas', title: 'X deal', deal_type: 'other' };
 		expect(() => rowToDeal({ ...row, merchant_slug: 'nope' }, lookups, NOW)).toThrow(/merchant_slug: no merchant "nope"/);
 		expect(() => rowToDeal({ ...row, providers: 'hnb|xyz' }, lookups, NOW)).toThrow(/providers: no provider "xyz"/);
 		expect(() => rowToDeal({ ...row, days: 'funday' }, lookups, NOW)).toThrow(/days: "funday"/);
 		expect(() => rowToDeal({ ...row, discount_percent: 'half' }, lookups, NOW)).toThrow(/discount_percent/);
-		expect(() => rowToDeal({ ...row, starts: '12/11/2026' }, lookups, NOW)).toThrow(/starts: use YYYY-MM-DD/);
+		expect(() => rowToDeal({ ...row, starts: '2026/31/12' }, lookups, NOW)).toThrow(/starts: use YYYY-MM-DD/);
 	});
 });

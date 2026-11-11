@@ -141,6 +141,29 @@ export const couponInputSchema = z.object({
 	validTo: isoDateTime.nullish().transform((v) => v ?? null)
 });
 
+const ALL_SAVING_FIELDS = [
+	'discountPercent',
+	'discountAmountLkr',
+	'maxSavingLkr',
+	'minSpendLkr',
+	'originalPriceLkr',
+	'dealPriceLkr'
+] as const;
+export type SavingField = (typeof ALL_SAVING_FIELDS)[number];
+
+/** Which saving fields apply to each deal type. The admin form shows only these; the API clears the rest. */
+export const SAVING_FIELDS: Record<z.infer<typeof dealTypeSchema>, readonly SavingField[]> = {
+	percent_off: ['discountPercent', 'maxSavingLkr', 'minSpendLkr'],
+	amount_off: ['discountAmountLkr', 'minSpendLkr'],
+	cashback: ['discountPercent', 'discountAmountLkr', 'maxSavingLkr', 'minSpendLkr'],
+	coupon_code: ['discountPercent', 'discountAmountLkr', 'maxSavingLkr', 'minSpendLkr'],
+	price_drop: ['originalPriceLkr', 'dealPriceLkr'],
+	bundle: ['originalPriceLkr', 'dealPriceLkr'],
+	bogo: ['minSpendLkr'],
+	freebie: ['minSpendLkr'],
+	other: ['minSpendLkr']
+};
+
 export const dealInputSchema = z
 	.object({
 		id: optionalId,
@@ -192,6 +215,16 @@ export const dealInputSchema = z
 		if (d.dealType === 'coupon_code' && d.coupons.length === 0) {
 			ctx.addIssue({ code: 'custom', message: 'Add at least one coupon code', path: ['coupons'] });
 		}
+		if ((d.dealType === 'price_drop' || d.dealType === 'bundle') && d.dealPriceLkr === null) {
+			ctx.addIssue({ code: 'custom', message: 'Required for this deal type', path: ['dealPriceLkr'] });
+		}
+	})
+	// Saving fields that do not apply to the deal type are cleared (see SAVING_FIELDS).
+	.transform((d) => {
+		const keep = new Set<SavingField>(SAVING_FIELDS[d.dealType]);
+		const cleared = { ...d };
+		for (const field of ALL_SAVING_FIELDS) if (!keep.has(field)) cleared[field] = null;
+		return cleared;
 	});
 export type DealInput = z.input<typeof dealInputSchema>;
 export type DealData = z.output<typeof dealInputSchema>;

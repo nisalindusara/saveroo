@@ -224,8 +224,13 @@ const en = {
 	'admin.import.columns':
 		'Required columns: merchant_slug, title, deal_type. Optional: discount_percent, discount_amount_lkr, max_saving_lkr, min_spend_lkr, original_price_lkr, deal_price_lkr, channel, category_slug, starts, ends, days, providers, card_type, coupon_code, terms, how_to_redeem, description, source_url.',
 	'admin.import.formats':
-		'Dates as YYYY-MM-DD (Sri Lanka time). days and providers take several values separated by | (for example tue|thu, hnb|sampath-bank). If any row has a problem, nothing is imported.',
-	'admin.import.example': 'Download an example file',
+		'Dates as YYYY-MM-DD or DD/MM/YYYY (Sri Lanka time). Comma or semicolon separated files both work. days and providers take several values separated by | (for example tue|thu, hnb|sampath-bank). If any row has a problem, nothing is imported.',
+	'admin.import.example': 'Download an example file (uses your first merchant)',
+	'admin.import.codes': 'Codes to use in the file',
+	'admin.import.codes_hint': 'Use these exact codes (slugs) in merchant_slug, providers and category_slug.',
+	'admin.import.codes_merchants': 'Merchants',
+	'admin.import.codes_providers': 'Banks and providers',
+	'admin.import.codes_categories': 'Categories',
 	'admin.import.submit': 'Import',
 	'admin.import.working': 'Importing…',
 	'admin.import.failed': 'Nothing was imported. Fix these rows and try again:',

@@ -6,7 +6,7 @@
 	import { enhance } from '$app/forms';
 	import { t } from '@saveroo/shared/i18n';
 	import { colomboLocalToUtc, utcToColomboLocal } from '@saveroo/shared/time';
-	import type { AdminBranch, AdminDeal, AdminReference, ApiError } from '@saveroo/shared';
+	import { SAVING_FIELDS, type AdminBranch, type AdminDeal, type AdminReference, type ApiError, type SavingField } from '@saveroo/shared';
 	import Field from './Field.svelte';
 	import ImageField from './ImageField.svelte';
 
@@ -77,6 +77,8 @@
 		(d?.coupons ?? []).map((c) => ({ code: c.code, kind: c.kind, usageLimit: str(c.usageLimit), validFrom: local(c.validFrom), validTo: local(c.validTo) }))
 	);
 
+	/** Saving fields that apply to the chosen deal type (others are hidden and not sent). */
+	const shows = (field: SavingField) => SAVING_FIELDS[dealType].includes(field);
 	const cardsOf = (providerId: string) => reference.cardProducts.filter((c) => c.providerId === providerId);
 	const toNumber = (v: string) => (v.trim() === '' ? null : Number(v.replace(/,/g, '')));
 	/** Colombo wall-clock to UTC; an unreadable value is sent as-is so the API flags the field. */
@@ -99,12 +101,12 @@
 			categoryId: categoryId || null,
 			brandId: brandId || null,
 			dealType,
-			discountPercent: toNumber(discountPercent),
-			discountAmountLkr: toNumber(discountAmountLkr),
-			maxSavingLkr: toNumber(maxSavingLkr),
-			minSpendLkr: toNumber(minSpendLkr),
-			originalPriceLkr: toNumber(originalPriceLkr),
-			dealPriceLkr: toNumber(dealPriceLkr),
+			discountPercent: shows('discountPercent') ? toNumber(discountPercent) : null,
+			discountAmountLkr: shows('discountAmountLkr') ? toNumber(discountAmountLkr) : null,
+			maxSavingLkr: shows('maxSavingLkr') ? toNumber(maxSavingLkr) : null,
+			minSpendLkr: shows('minSpendLkr') ? toNumber(minSpendLkr) : null,
+			originalPriceLkr: shows('originalPriceLkr') ? toNumber(originalPriceLkr) : null,
+			dealPriceLkr: shows('dealPriceLkr') ? toNumber(dealPriceLkr) : null,
 			channel,
 			startsAt: toUtc(startsAt) ?? new Date().toISOString(),
 			endsAt: toUtc(endsAt),
@@ -202,24 +204,36 @@
 	<section class="space-y-4">
 		<h2 class="text-lg font-semibold">{t('admin.deal.saving')}</h2>
 		<div class="grid gap-4 md:grid-cols-3">
-			<Field label={t('admin.deal.discount_percent')} error={fields.discountPercent}>
-				<input class={input} inputmode="decimal" bind:value={discountPercent} />
-			</Field>
-			<Field label={t('admin.deal.discount_amount')} error={fields.discountAmountLkr}>
-				<input class={input} inputmode="decimal" bind:value={discountAmountLkr} />
-			</Field>
-			<Field label={t('admin.deal.max_saving')} error={fields.maxSavingLkr}>
-				<input class={input} inputmode="decimal" bind:value={maxSavingLkr} />
-			</Field>
-			<Field label={t('admin.deal.min_spend')} error={fields.minSpendLkr}>
-				<input class={input} inputmode="decimal" bind:value={minSpendLkr} />
-			</Field>
-			<Field label={t('admin.deal.original_price')} error={fields.originalPriceLkr}>
-				<input class={input} inputmode="decimal" bind:value={originalPriceLkr} />
-			</Field>
-			<Field label={t('admin.deal.deal_price')} error={fields.dealPriceLkr}>
-				<input class={input} inputmode="decimal" bind:value={dealPriceLkr} />
-			</Field>
+			{#if shows('discountPercent')}
+				<Field label={t('admin.deal.discount_percent')} error={fields.discountPercent}>
+					<input class={input} inputmode="decimal" bind:value={discountPercent} />
+				</Field>
+			{/if}
+			{#if shows('discountAmountLkr')}
+				<Field label={t('admin.deal.discount_amount')} error={fields.discountAmountLkr}>
+					<input class={input} inputmode="decimal" bind:value={discountAmountLkr} />
+				</Field>
+			{/if}
+			{#if shows('maxSavingLkr')}
+				<Field label={t('admin.deal.max_saving')} error={fields.maxSavingLkr}>
+					<input class={input} inputmode="decimal" bind:value={maxSavingLkr} />
+				</Field>
+			{/if}
+			{#if shows('minSpendLkr')}
+				<Field label={t('admin.deal.min_spend')} error={fields.minSpendLkr}>
+					<input class={input} inputmode="decimal" bind:value={minSpendLkr} />
+				</Field>
+			{/if}
+			{#if shows('originalPriceLkr')}
+				<Field label={t('admin.deal.original_price')} error={fields.originalPriceLkr}>
+					<input class={input} inputmode="decimal" bind:value={originalPriceLkr} />
+				</Field>
+			{/if}
+			{#if shows('dealPriceLkr')}
+				<Field label={t('admin.deal.deal_price')} error={fields.dealPriceLkr}>
+					<input class={input} inputmode="decimal" bind:value={dealPriceLkr} />
+				</Field>
+			{/if}
 		</div>
 	</section>
 

@@ -60,12 +60,22 @@ function number(value: string, column: string) {
 	return n;
 }
 
+/** "31/12/2026 18:00" (day first, as Sri Lankan Excel shows dates) -> "2026-12-31 18:00". */
+function dayFirstToIso(value: string) {
+	const m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/.exec(value);
+	if (!m) return value;
+	const [, d, mo, y, h, mi] = m;
+	const pad = (n: string) => n.padStart(2, '0');
+	return `${y}-${pad(mo!)}-${pad(d!)}${h ? ` ${pad(h)}:${mi}` : ''}`;
+}
+
 function colomboTime(value: string, column: string, endOfDay: boolean) {
-	const v = /^\d{4}-\d{2}-\d{2}$/.test(value) && endOfDay ? `${value} 23:59` : value;
+	const iso = dayFirstToIso(value.trim());
+	const v = /^\d{4}-\d{2}-\d{2}$/.test(iso) && endOfDay ? `${iso} 23:59` : iso;
 	try {
 		return colomboLocalToUtc(v);
 	} catch {
-		throw new RowError(`${column}: use YYYY-MM-DD or YYYY-MM-DD HH:MM (Sri Lanka time)`);
+		throw new RowError(`${column}: use YYYY-MM-DD or DD/MM/YYYY, optionally with HH:MM (Sri Lanka time)`);
 	}
 }
 
