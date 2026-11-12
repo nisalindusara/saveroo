@@ -20,6 +20,7 @@
 		supabaseUrl,
 		index = 0,
 		priority = false,
+		animate = true,
 		width
 	}: {
 		deal: PublicDealCard;
@@ -28,20 +29,29 @@
 		index?: number;
 		/** Load the image right away (first cards on screen). */
 		priority?: boolean;
+		/** Play the rise-in animation (off when cards are only being re-arranged). */
+		animate?: boolean;
 		/** Fixed width in rails (e.g. "10.5rem"); fills its column when not set. */
 		width?: string;
 	} = $props();
 
-	const ratio = $derived(posterRatio(deal));
+	// Rails use one 4:5 frame so cards line up; feeds use each poster's own shape.
+	const RAIL_RATIO = 0.8;
+	const ratio = $derived(width ? RAIL_RATIO : posterRatio(deal));
 	const isToday = $derived(validOn(deal, today));
 	const daysLeft = $derived(endsWithin(deal, 7));
 	const colours = $derived(posterColours(deal.merchant.name));
-	const legacy = $derived(deal.imageKey !== null && deal.imageRatio === null);
+	// Show the whole image (on a blurred copy of itself) when it does not fit the frame well.
+	const fitWhole = $derived(
+		deal.imageKey !== null &&
+			(deal.imageRatio === null || (width !== undefined && (deal.imageRatio < 0.65 || deal.imageRatio > 1.05)))
+	);
 </script>
 
 <a
 	href={resolve('/(site)/deals/[slug]', { slug: deal.slug })}
-	class="card press group rise block"
+	class="card press group block"
+	class:rise={animate}
 	style:--i={Math.min(index, 10)}
 	style:width
 	data-sveltekit-preload-data="hover"
@@ -52,6 +62,9 @@
 		style:view-transition-name="deal-{deal.id}"
 	>
 		{#if deal.imageKey}
+			{#if fitWhole}
+				<span class="backdrop" style:background-image="url({imageUrl(supabaseUrl, deal.imageKey, 320)})" aria-hidden="true"></span>
+			{/if}
 			<img
 				src={imageUrl(supabaseUrl, deal.imageKey, 640)}
 				srcset={imageSrcset(supabaseUrl, deal.imageKey)}
@@ -60,12 +73,12 @@
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
 				decoding="async"
-				class="h-full w-full transition-transform duration-500 group-hover:scale-[1.03] {legacy ? 'object-contain' : 'object-cover'}"
+				class="relative h-full w-full transition-transform duration-500 group-hover:scale-[1.03] {fitWhole ? 'object-contain' : 'object-cover'}"
 			/>
 		{:else}
-			<div class="flex h-full flex-col justify-between p-3" style:background={colours.bg} style:color={colours.fg}>
-				<span class="text-[0.7rem] font-bold tracking-wider uppercase opacity-90">{deal.merchant.name}</span>
-				<span class="font-display text-lg leading-tight font-bold">{deal.title}</span>
+			<div class="colour-poster flex h-full flex-col p-3 pt-9" style:background={colours.bg} style:color={colours.fg}>
+				<span class="font-display leading-[0.95] font-extrabold tracking-tight" style:font-size={deal.merchant.name.length > 14 ? '1.05rem' : deal.merchant.name.length > 9 ? '1.25rem' : '1.5rem'}>{deal.merchant.name}</span>
+				<span class="ring" aria-hidden="true"></span>
 			</div>
 		{/if}
 
@@ -83,12 +96,14 @@
 			{/if}
 		</div>
 
-		<div class="absolute bottom-2.5 left-0">
-			<RooTag {deal} />
-		</div>
 	</div>
 
-	<div class="px-0.5 pt-2.5 pb-1">
+	<!-- The Roo tag straddles the poster's bottom edge, so it covers little of the poster itself. -->
+	<div class="relative z-10 -mt-[1.15rem] h-[2.3rem] pl-1">
+		<RooTag {deal} />
+	</div>
+
+	<div class="px-0.5 pt-1 pb-1">
 		<div class="flex items-center gap-1.5 text-[0.72rem] font-semibold text-ink-2">
 			{#if deal.merchant.logoKey}
 				<img src={imageUrl(supabaseUrl, deal.merchant.logoKey, 320)} alt="" width="16" height="16" loading="lazy" class="size-4 rounded-full object-cover ring-1 ring-line" />
@@ -97,7 +112,7 @@
 		</div>
 		<h3 class="mt-0.5 line-clamp-2 text-[0.88rem] leading-snug font-semibold text-ink">{deal.title}</h3>
 		<div class="mt-1.5 flex items-center justify-between gap-2">
-			<BankChips providers={deal.providers} />
+			<BankChips providers={deal.providers} max={1} />
 			<WeekStrip days={deal.validDays} {today} />
 		</div>
 	</div>
@@ -132,5 +147,27 @@
 	}
 	.poster {
 		transition: box-shadow 400ms var(--ease-out-expo);
+	}
+	.backdrop {
+		position: absolute;
+		inset: -10%;
+		background-size: cover;
+		background-position: center;
+		filter: blur(18px) saturate(1.3);
+		opacity: 0.8;
+	}
+	.colour-poster {
+		position: relative;
+		overflow: hidden;
+	}
+	.ring {
+		position: absolute;
+		right: -2.5rem;
+		bottom: -2.5rem;
+		width: 7rem;
+		height: 7rem;
+		border-radius: 50%;
+		border: 1.1rem solid currentColor;
+		opacity: 0.16;
 	}
 </style>

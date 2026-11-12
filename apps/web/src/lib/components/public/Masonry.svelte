@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { t } from '@saveroo/shared/i18n';
 	import type { PublicDealCard } from '@saveroo/shared';
 	import { columnsFor, distribute } from '#lib/public/cards.js';
@@ -29,6 +30,9 @@
 
 	// Server render assumes a phone (2 columns); the browser re-balances for its width.
 	let count = $state(2);
+	// Cards rise in when they first appear; re-arranging columns (wider screen) must not replay it.
+	const seen = new SvelteSet<string>();
+	let settled = $state(false);
 	// svelte-ignore state_referenced_locally
 	let all = $state<PublicDealCard[]>([...deals]);
 	// svelte-ignore state_referenced_locally
@@ -62,6 +66,8 @@
 		const media = [720, 1100, 1400].map((w) => matchMedia(`(min-width: ${w}px)`));
 		const update = () => (count = columnsFor(innerWidth));
 		update();
+		for (const d of all) seen.add(d.id);
+		requestAnimationFrame(() => (settled = true));
 		media.forEach((m) => m.addEventListener('change', update));
 
 		const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
@@ -80,7 +86,7 @@
 		<div class="flex min-w-0 flex-col gap-4 sm:gap-5">
 			{#each column as deal (deal.id)}
 				{@const i = order.get(deal.id) ?? 0}
-				<DealCard {deal} {today} {supabaseUrl} index={i % 12} priority={i < priority} />
+				<DealCard {deal} {today} {supabaseUrl} index={i % 12} priority={i < priority} animate={!settled || !seen.has(deal.id)} />
 			{/each}
 		</div>
 	{/each}

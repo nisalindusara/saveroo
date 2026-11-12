@@ -6,7 +6,7 @@
 	import { t } from '@saveroo/shared/i18n';
 	import Icon from '#lib/components/public/Icon.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
-	import { posterColours } from '#lib/public/cards.js';
+	import { paletteAt } from '#lib/public/cards.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -20,7 +20,7 @@
 
 	<ul class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
 		{#each data.categories as c, i (c.slug)}
-			{@const colours = posterColours(c.slug)}
+			{@const colours = paletteAt(i)}
 			<li class="rise" style:--i={i}>
 				<a
 					href={resolve('/(site)/categories/[slug]', { slug: c.slug })}

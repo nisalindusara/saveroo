@@ -64,6 +64,12 @@ const POSTER_COLOURS = [
 	['#1a1410', '#fbf7f1']
 ] as const;
 
+/** Background and text colour by position, so neighbouring tiles never repeat a colour. */
+export function paletteAt(index: number): { bg: string; fg: string } {
+	const [bg, fg] = POSTER_COLOURS[index % POSTER_COLOURS.length]!;
+	return { bg, fg };
+}
+
 /** Background and text colour for a colour poster, stable per merchant. */
 export function posterColours(seed: string): { bg: string; fg: string } {
 	let hash = 0;

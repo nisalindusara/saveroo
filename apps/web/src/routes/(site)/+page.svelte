@@ -64,7 +64,7 @@
 {/if}
 
 {#if home.today.length}
-	<Section title={t('pub.home.works_today', { day: dayName })} subtitle={t('pub.home.works_today_sub')} icon="sun" tone="leaf">
+	<Section title={t('pub.home.works_today', { day: dayName })} subtitle={t('pub.home.works_today_sub', { day: dayName })} icon="sun" tone="leaf">
 		<div class="rail mx-auto max-w-7xl pb-2">
 			{#each home.today as deal, i (deal.id)}
 				<DealCard {deal} today={data.today} supabaseUrl={data.supabaseUrl} index={i} priority={i < 2} width="10.5rem" />

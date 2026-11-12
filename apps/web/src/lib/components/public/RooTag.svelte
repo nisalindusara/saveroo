@@ -1,6 +1,8 @@
 <!--
 	The "Roo tag": Saveroo's tilted orange price tag showing the saving ("50% / OFF").
-	Used on deal cards (small) and the deal page (large).
+	Used on deal cards (small, straddling the poster edge) and the deal page (large).
+	The outer span carries tilt and shadow; the inner span is cut to the tag shape (a shadow on the
+	cut element itself would be clipped away).
 -->
 <script lang="ts">
 	import { savingTag } from '@saveroo/shared/deal-text';
@@ -10,13 +12,22 @@
 	const tag = $derived(savingTag(deal));
 </script>
 
-<span class="tag {size}" aria-hidden="true">
-	<span class="hole"></span>
-	<span class="big">{tag.big}</span>
-	<span class="small">{tag.small}</span>
+<span class="wrap {size}" aria-hidden="true">
+	<span class="tag">
+		<span class="hole"></span>
+		<span class="big">{tag.big}</span>
+		<span class="small">{tag.small}</span>
+	</span>
 </span>
 
 <style>
+	.wrap {
+		display: inline-block;
+		transform: rotate(-4deg);
+		transform-origin: left center;
+		filter: drop-shadow(0 2px 0 var(--bg)) drop-shadow(0 8px 14px rgb(194 65 12 / 0.38));
+		transition: transform 380ms var(--ease-spring);
+	}
 	.tag {
 		--notch: 0.7em;
 		position: relative;
@@ -25,16 +36,12 @@
 		align-items: flex-start;
 		justify-content: center;
 		padding: 0.35em 0.7em 0.35em calc(var(--notch) + 0.55em);
-		background: var(--roo);
+		background: linear-gradient(160deg, color-mix(in srgb, var(--roo) 88%, #fff), var(--roo) 55%);
 		color: #fff;
 		font-family: var(--font-display);
 		line-height: 0.92;
-		transform: rotate(-4deg);
-		transform-origin: left center;
 		clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, var(--notch) 100%, 0 50%);
 		border-radius: 0.3em;
-		filter: drop-shadow(0 4px 10px rgb(194 65 12 / 0.35));
-		transition: transform 380ms var(--ease-spring);
 	}
 	.hole {
 		position: absolute;
@@ -65,7 +72,7 @@
 		font-size: 1.9rem;
 		transform: rotate(-3deg);
 	}
-	:global(.card:hover) .tag {
+	:global(.card:hover) .wrap {
 		transform: rotate(-7deg) scale(1.06);
 	}
 </style>

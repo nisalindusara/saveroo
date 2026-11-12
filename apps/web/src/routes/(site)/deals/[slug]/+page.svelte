@@ -30,6 +30,8 @@
 	const today = $derived(validOn(deal, data.today));
 	const daysLeft = $derived(endsWithin(deal, 7));
 	const saving = $derived(savingText(deal));
+	// The tag already shows the headline number; repeat the text only when it adds a cap or minimum spend.
+	const savingDetail = $derived(deal.maxSavingLkr !== null || deal.minSpendLkr !== null || deal.dealPriceLkr !== null ? saving : null);
 	const colours = $derived(posterColours(deal.merchant.name));
 	const checkedDays = $derived(deal.lastCheckedAt ? Math.max(0, -colomboDaysUntil(deal.lastCheckedAt)) : null);
 	const shareText = $derived(`${deal.title} · ${deal.merchant.name} (${saving})`);
@@ -102,7 +104,7 @@
 				<button class="round press" onclick={share} aria-label={t('pub.deal.share')}><Icon name="share" size={19} stroke={2.3} /></button>
 			</div>
 
-			<div class="relative flex justify-center px-6 pt-16 pb-12 md:px-10 md:py-10">
+			<div class="relative flex justify-center px-6 pt-14 pb-11 md:px-10 md:py-10">
 				{#if deal.imageKey}
 					<button
 						type="button"
@@ -155,7 +157,7 @@
 
 		<div class="mt-5 flex items-center gap-4">
 			<RooTag {deal} size="lg" />
-			<p class="text-[0.92rem] leading-snug font-medium text-ink-2">{saving}</p>
+			{#if savingDetail}<p class="text-[0.92rem] leading-snug font-medium text-ink-2">{savingDetail}</p>{/if}
 		</div>
 
 		<!-- When -->
@@ -286,7 +288,7 @@
 {/if}
 
 <!-- Share bar -->
-<div class="fixed inset-x-0 bottom-[5.4rem] z-30 px-4 md:bottom-6" style:view-transition-name="share-bar">
+<div class="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-6 md:pb-0" style:view-transition-name="share-bar">
 	<div class="mx-auto flex max-w-md gap-2">
 		<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#1fa855] py-3.5 font-bold text-white shadow-card">
 			<Icon name="whatsapp" size={20} stroke={2} />{t('pub.deal.share_whatsapp')}
@@ -329,9 +331,10 @@
 		position: relative;
 		z-index: 1;
 		display: block;
-		width: min(100%, calc(60vh * var(--r, 1)));
+		/* Leave room for the merchant, title and tag to peek up on the first screen. */
+		width: min(100%, calc(48svh * var(--r, 1)));
 		max-width: 26rem;
-		max-height: 60vh;
+		max-height: 48svh;
 		overflow: hidden;
 		border-radius: 1.25rem;
 		box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.08);

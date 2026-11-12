@@ -11,7 +11,7 @@
 	const more = $derived(providers.length - shown.length);
 </script>
 
-<span class="flex min-w-0 flex-wrap items-center gap-1">
+<span class="flex min-w-0 items-center gap-1 overflow-hidden">
 	{#if providers.length === 0}
 		<span class="chip open">{t('pub.any_card')}</span>
 	{:else}
@@ -23,6 +23,7 @@
 <style>
 	.chip {
 		display: inline-block;
+		flex: none;
 		max-width: 100%;
 		overflow: hidden;
 		text-overflow: ellipsis;

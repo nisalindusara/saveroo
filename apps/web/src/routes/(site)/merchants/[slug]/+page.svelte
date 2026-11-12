@@ -36,7 +36,7 @@
 		{/if}
 	</div>
 	<div class="mx-auto max-w-7xl px-4">
-		<div class="-mt-10 flex items-end gap-4">
+		<div class="relative z-10 -mt-10 flex items-end gap-4">
 			<div class="grid size-20 shrink-0 place-items-center overflow-hidden rounded-[1.4rem] border-4 border-bg bg-surface shadow-card md:size-28">
 				{#if m.logoKey}
 					<img src={imageUrl(data.supabaseUrl, m.logoKey, 320)} alt={m.name} class="h-full w-full object-cover" />

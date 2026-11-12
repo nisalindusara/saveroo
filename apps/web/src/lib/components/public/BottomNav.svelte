@@ -12,11 +12,14 @@
 		{ href: resolve('/(site)'), icon: 'home', label: t('pub.nav.home'), match: (p) => p === '/' },
 		{ href: resolve('/(site)/search'), icon: 'search', label: t('pub.nav.search'), match: (p) => p.startsWith('/search') },
 		{ href: resolve('/(site)/categories'), icon: 'grid', label: t('pub.nav.categories'), match: (p) => p.startsWith('/categories') },
-		{ href: resolve('/(site)/me'), icon: 'user', label: t('pub.nav.me'), match: (p) => p.startsWith('/me') || p.startsWith('/login') }
+		{ href: resolve('/(site)/me'), icon: 'user', label: t('pub.nav.me'), match: (p) => p === '/me' || p === '/login' }
 	];
 	const active = $derived(tabs.findIndex((tab) => tab.match(page.url.pathname)));
+	// Deal pages have their own bottom bar (share) and a back button, like most detail screens.
+	const hidden = $derived(page.url.pathname.startsWith('/deals/'));
 </script>
 
+{#if !hidden}
 <nav
 	class="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] md:hidden"
 	aria-label={t('pub.nav.label')}
@@ -38,6 +41,7 @@
 		{/each}
 	</div>
 </nav>
+{/if}
 
 <style>
 	.indicator {
