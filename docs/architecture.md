@@ -19,7 +19,7 @@
 | Auth | Supabase Auth | R1: email magic link and Google. Phone OTP later (SMS costs money) |
 | Files | Supabase Storage (public `media` bucket) | No payment card needed (R2 asks for one, owner chose not to add one). Free plan: 1 GB stored, about 5 GB uncached + 5 GB cached downloads a month. Images are resized to WebP in the admin browser before upload, get unique names and a one-year cache. Move to R2 or a CDN if downloads approach the limit |
 | Search | Postgres full-text + trigram | Typo tolerant and free; Meilisearch or Typesense later if needed |
-| Cache | Cloudflare Cache API + KV | Hot feeds cached 60 seconds |
+| Cache | In-memory cache in the API Worker + Cache-Control headers | Public replies cached 60 s (categories 300 s) per Worker instance. The Cloudflare Cache API does nothing on workers.dev, and KV allows only 1,000 writes a day on free, so both wait for a custom domain; the Cache-Control headers already let Cloudflare's edge cache once one is connected |
 | Email | Resend | Free tier |
 | Push | Web Push (VAPID) and Firebase Cloud Messaging (Android, later iOS) | Free |
 | Mobile | Expo (React Native), expo-router, FlashList | One codebase for Android and iOS, shares TypeScript with everything else |
@@ -69,6 +69,13 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 - Images: the admin's browser resizes to WebP at 320/640/1280 px (thumbnail at most 60 KB); the web passes the upload to `POST /admin/images`, which checks size and format and stores `<key>-<width>.webp` in the `media` bucket with a one-year cache. Columns store the image key; `imageUrl()` builds addresses.
 - Workers free plan allows 50 outgoing requests per request, so bulk work (CSV import) is one database call, not one per row.
 - Admin forms keep their state in Svelte and post one JSON `payload` field to a form action, which calls the API; API errors come back with per-field messages (`error.fields`).
+
+### Public API (M4)
+- Endpoints (no sign-in): `GET /feed?category=&cursor=`, `/categories`, `/categories/:slug`, `/merchants/:slug`, `/merchants/:slug/deals`, `/deals/:slug`, `/search?q=&cursor=`. Lists return `{ data, nextCursor }` (20 per page); cursors are opaque.
+- Each endpoint makes one call to a `public_*` database function (`supabase/migrations/*_public_reads.sql`) that returns ready JSON. A deal is public when it is live, has started, has not ended and its merchant is active; that rule lives only in those functions. Pages are chosen first and cards built only for the rows shown.
+- Search: words (full text), similar titles and similar merchant names (pg_trgm), best match first; offset paging up to 200 results. "scop cinemas" finds Scope Cinemas.
+- Caching: `publicCache` (`apps/api/src/cache.ts`) sets `Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=300`, `X-Cache: HIT|MISS` and `Age`; errors are `no-store`. Every response has `Server-Timing: app;dur=<ms>`.
+- Measured 2026-11-12 (`scripts/perf`): local database with 2,000 deals, p95 13-56 ms uncached, about 1 ms cached; staging (Cloudflare to Supabase Mumbai), p95 53-62 ms uncached, 0 ms cached.
 
 ## Performance budgets (requirements)
 - Largest Contentful Paint at most 2.5 s on a mid-range Android over 4G.
