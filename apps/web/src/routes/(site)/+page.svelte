@@ -122,7 +122,7 @@
 		border-radius: 50%;
 		background: var(--leaf);
 		box-shadow: 0 0 0 0 var(--leaf);
-		animation: ping 2s var(--ease-out-expo) infinite;
+		animation: ping 2s var(--ease-out-expo) 3;
 	}
 	@keyframes ping {
 		70% {

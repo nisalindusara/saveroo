@@ -30,7 +30,8 @@
 	--roo: #ff5a1f;
 	--roo-ink: #c2410c;
 	--roo-soft: #ffe8dc;
-	--leaf: #0f8a5f;
+	--leaf: #0b7a53;
+	--on-leaf: #ffffff;
 	--leaf-soft: #dcf3e8;
 	--sun: #f5a300;
 	--sun-soft: #fff1c9;
@@ -49,6 +50,7 @@
 		--roo-ink: #ff8a5c;
 		--roo-soft: #3b1f13;
 		--leaf: #3ccf95;
+		--on-leaf: #062014;
 		--leaf-soft: #12291f;
 		--sun: #ffc633;
 		--sun-soft: #33280b;
@@ -68,6 +70,7 @@
 	--color-roo-ink: var(--roo-ink);
 	--color-roo-soft: var(--roo-soft);
 	--color-leaf: var(--leaf);
+	--color-on-leaf: var(--on-leaf);
 	--color-leaf-soft: var(--leaf-soft);
 	--color-sun: var(--sun);
 	--color-sun-soft: var(--sun-soft);

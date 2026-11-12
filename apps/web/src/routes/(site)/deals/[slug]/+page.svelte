@@ -10,7 +10,7 @@
 	import { page } from '$app/state';
 	import { daysText, savingText } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
-	import { imageSrcset, imageUrl, shareImageUrl } from '@saveroo/shared/images';
+	import { imageUrl, shareImageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
 	import { colomboDaysUntil, formatColomboDate } from '@saveroo/shared/time';
 	import CouponTicket from '#lib/components/public/CouponTicket.svelte';
@@ -70,6 +70,11 @@
 			: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${deal.merchant.name} ${b.name} ${b.city ?? ''}`)}`;
 </script>
 
+<svelte:head>
+	<!-- The poster is the largest thing on screen: start downloading it before anything else. -->
+	{#if deal.imageKey}<link rel="preload" as="image" href={imageUrl(data.supabaseUrl, deal.imageKey, 640)} fetchpriority="high" />{/if}
+</svelte:head>
+
 <Seo
 	title={`${deal.title} · ${deal.merchant.name}`}
 	{description}
@@ -94,7 +99,7 @@
 	<div class="relative md:sticky md:top-20 md:self-start">
 		<div class="hero relative overflow-hidden md:rounded-[2rem]">
 			{#if deal.imageKey}
-				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 320)} alt="" aria-hidden="true" class="backdrop" />
+				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" aria-hidden="true" class="backdrop" />
 			{:else}
 				<div class="absolute inset-0" style:background={colours.bg}></div>
 			{/if}
@@ -117,8 +122,6 @@
 					>
 						<img
 							src={imageUrl(data.supabaseUrl, deal.imageKey, 640)}
-							srcset={imageSrcset(data.supabaseUrl, deal.imageKey)}
-							sizes="(min-width: 768px) 520px, 88vw"
 							alt={deal.title}
 							fetchpriority="high"
 							class="h-full w-full {deal.imageRatio ? 'object-cover' : 'object-contain'}"
@@ -278,19 +281,21 @@
 	</article>
 </div>
 
-{#if data.more.length}
+{#await data.more then more}
+{#if more.length}
 	<section class="mx-auto mt-2 max-w-6xl md:mt-10">
 		<h2 class="font-display px-4 text-[1.35rem] font-extrabold tracking-tight">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
 		<div class="rail mt-3 pb-2">
-			{#each data.more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="10.5rem" />{/each}
+			{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="10.5rem" />{/each}
 		</div>
 	</section>
 {/if}
+{/await}
 
 <!-- Share bar -->
 <div class="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-6 md:pb-0" style:view-transition-name="share-bar">
 	<div class="mx-auto flex max-w-md gap-2">
-		<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#1fa855] py-3.5 font-bold text-white shadow-card">
+		<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f7f43] py-3.5 font-bold text-white shadow-card">
 			<Icon name="whatsapp" size={20} stroke={2} />{t('pub.deal.share_whatsapp')}
 		</ExternalLink>
 		<button class="press grid w-14 place-items-center rounded-2xl border border-line bg-surface shadow-card" onclick={share} aria-label={t('pub.deal.share')}>

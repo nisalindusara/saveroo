@@ -84,7 +84,7 @@
 
 		<div class="pointer-events-none absolute inset-x-2 top-2 flex justify-between gap-1">
 			{#if isToday}
-				<span class="badge bg-leaf text-white"><span class="dot"></span>{t('pub.today')}</span>
+				<span class="badge bg-leaf text-on-leaf"><span class="dot"></span>{t('pub.today')}</span>
 			{:else}
 				<span></span>
 			{/if}
@@ -135,7 +135,7 @@
 		height: 0.4rem;
 		border-radius: 50%;
 		background: currentColor;
-		animation: pulse 1.8s ease-in-out infinite;
+		animation: pulse 1.8s ease-in-out 3;
 	}
 	@keyframes pulse {
 		50% {
@@ -144,6 +144,11 @@
 	}
 	.card:hover .poster {
 		box-shadow: 0 2px 4px rgb(26 20 16 / 0.08), 0 18px 40px -12px rgb(26 20 16 / 0.35);
+	}
+	/* Cards far below the screen are not laid out or painted until the person scrolls near them. */
+	.card {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 20rem;
 	}
 	.poster {
 		transition: box-shadow 400ms var(--ease-out-expo);

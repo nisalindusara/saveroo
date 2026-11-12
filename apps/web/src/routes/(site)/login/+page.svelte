@@ -14,7 +14,7 @@
 
 <Seo title={t('auth.login_title')} description={t('auth.login_intro')} noindex />
 
-<main class="mx-auto max-w-sm px-4 pt-10">
+<div class="mx-auto max-w-sm px-4 pt-10">
 	<Logo size="lg" />
 	<h1 class="font-display mt-6 text-[2rem] leading-tight font-extrabold tracking-tight">{t('auth.login_title')}</h1>
 	<p class="mt-2 text-ink-2">{t('auth.login_intro')}</p>
@@ -49,4 +49,4 @@
 			<button type="submit" class="press w-full rounded-2xl bg-ink px-4 py-3.5 font-bold text-bg">{t('auth.email_submit')}</button>
 		</form>
 	{/if}
-</main>
+</div>

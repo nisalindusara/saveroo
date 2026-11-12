@@ -22,7 +22,7 @@
 		children: Snippet;
 	} = $props();
 
-	const tones = { ink: 'bg-ink text-bg', leaf: 'bg-leaf text-white', sun: 'bg-sun text-ink', roo: 'bg-roo text-white' };
+	const tones = { ink: 'bg-ink text-bg', leaf: 'bg-leaf text-on-leaf', sun: 'bg-sun text-ink', roo: 'bg-roo text-white' };
 </script>
 
 <section class="mt-9">

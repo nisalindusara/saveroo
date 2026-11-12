@@ -14,9 +14,9 @@
 
 <TopBar signedIn={data.user !== null} />
 
-<div class="min-h-[70vh] pb-28 md:pb-12">
+<main class="min-h-[70vh] pb-28 md:pb-12">
 	{@render children()}
-</div>
+</main>
 
 <footer class="border-t border-line pb-32 md:pb-10">
 	<div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 pt-8 text-sm text-ink-2 md:flex-row md:items-center md:justify-between">

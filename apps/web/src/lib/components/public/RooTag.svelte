@@ -25,7 +25,7 @@
 		display: inline-block;
 		transform: rotate(-4deg);
 		transform-origin: left center;
-		filter: drop-shadow(0 2px 0 var(--bg)) drop-shadow(0 8px 14px rgb(194 65 12 / 0.38));
+		filter: drop-shadow(0 5px 9px rgb(194 65 12 / 0.4));
 		transition: transform 380ms var(--ease-spring);
 	}
 	.tag {
