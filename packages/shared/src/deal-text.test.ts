@@ -1,6 +1,6 @@
 // Tests for the deal texts in deal-text.ts.
 import { describe, expect, it } from 'vitest';
-import { daysText, savingTag, savingText } from './deal-text';
+import { cardValue, daysText, savingTag, savingText } from './deal-text';
 
 const none = { discountPercent: null, discountAmountLkr: null, maxSavingLkr: null, minSpendLkr: null, dealPriceLkr: null };
 
@@ -42,5 +42,22 @@ describe('daysText', () => {
 		expect(daysText([2])).toBe('Tue');
 		expect(daysText([4, 2])).toBe('Tue and Thu');
 		expect(daysText([1, 3, 5])).toBe('Mon, Wed and Fri');
+	});
+});
+
+describe('cardValue', () => {
+	const base = { ...none, originalPriceLkr: null };
+	it('leads with the saving and adds the cap or minimum spend', () => {
+		expect(cardValue({ ...base, dealType: 'percent_off', discountPercent: 40, maxSavingLkr: 5000 })).toEqual({ main: '40% off', note: 'up to Rs 5,000' });
+		expect(cardValue({ ...base, dealType: 'amount_off', discountAmountLkr: 10000, minSpendLkr: 150000 })).toEqual({ main: 'Rs 10,000 off', note: 'min. spend Rs 150,000' });
+		expect(cardValue({ ...base, dealType: 'cashback', discountPercent: 10 })).toEqual({ main: '10% cashback', note: undefined });
+	});
+
+	it('crosses out the old price for price drops', () => {
+		expect(cardValue({ ...base, dealType: 'price_drop', originalPriceLkr: 4000, dealPriceLkr: 2400 })).toEqual({ main: 'Rs 2,400', was: 'Rs 4,000', pill: '-40%' });
+	});
+
+	it('names the deal when there is no number', () => {
+		expect(cardValue({ ...base, dealType: 'bogo' }).main).toBe('Buy one, get one free');
 	});
 });

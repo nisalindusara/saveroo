@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(23);
 
 insert into public.merchants (id, slug, name, status) values
   ('00000000-0000-0000-0000-0000000000b1', 'scope-cinemas', 'Scope Cinemas', 'active'),
@@ -41,6 +41,14 @@ select is(
 select is(
   (select card -> 'providers' from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
   '[{"slug": "hnb", "name": "Hatton National Bank (HNB)"}]'::jsonb, 'a card carries the banks whose cards qualify'
+);
+select is(
+  (select card -> 'place' from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
+  '{"city": "Colombo", "count": 1}'::jsonb, 'a card says where it works (all merchant branches when none are picked)'
+);
+select is(
+  (select card ->> 'couponCode' from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
+  'MOVIE50', 'a card carries its first copy coupon code'
 );
 select results_eq(
   $$ select card ->> 'slug' from public.public_feed(p_limit => 1) $$,

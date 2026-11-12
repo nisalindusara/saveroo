@@ -1,5 +1,6 @@
-// Short human texts for a deal: the saving ("50% off · up to LKR 1,500") and valid days ("Tue and Thu").
-// Used by the admin preview now and the public deal cards and pages from M5.
+// Short human texts for a deal: the saving ("50% off · up to LKR 1,500"), the card value line
+// ("40% off" + "up to Rs 5,000", or a crossed-out price) and valid days ("Tue and Thu").
+// Used by the admin preview and the public deal cards and pages.
 import { t } from './i18n';
 
 export function formatLkr(amount: number): string {
@@ -25,6 +26,43 @@ export function savingText(d: SavingFields): string {
 	if (d.maxSavingLkr !== null) parts.push(t('deal.up_to', { amount: formatLkr(d.maxSavingLkr) }));
 	if (d.minSpendLkr !== null) parts.push(t('deal.min_spend', { amount: formatLkr(d.minSpendLkr) }));
 	return parts.join(' · ');
+}
+
+/** Rupees as shoppers write them: "Rs 5,000". */
+export function formatRs(amount: number): string {
+	return `Rs ${amount.toLocaleString('en-LK', { maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * The value line on a deal card: `main` in big type, `was` crossed out before it, `pill` as a small
+ * discount badge, `note` in small grey after it. E.g. "40% off" + "up to Rs 5,000".
+ */
+export function cardValue(d: SavingFields & { originalPriceLkr: number | null }): {
+	main: string;
+	was?: string;
+	pill?: string;
+	note?: string;
+} {
+	const note =
+		d.maxSavingLkr !== null
+			? t('deal.up_to', { amount: formatRs(d.maxSavingLkr) })
+			: d.minSpendLkr !== null
+				? t('deal.min_spend', { amount: formatRs(d.minSpendLkr) })
+				: undefined;
+	if (d.dealPriceLkr !== null) {
+		const off = d.originalPriceLkr ? Math.round((1 - d.dealPriceLkr / d.originalPriceLkr) * 100) : 0;
+		return off > 0
+			? { main: formatRs(d.dealPriceLkr), was: formatRs(d.originalPriceLkr!), pill: `-${off}%` }
+			: { main: formatRs(d.dealPriceLkr) };
+	}
+	if (d.discountPercent !== null) {
+		const key = d.dealType === 'cashback' ? 'deal.percent_cashback' : 'deal.percent_off';
+		return { main: t(key, { percent: Math.round(d.discountPercent * 100) / 100 }), note };
+	}
+	if (d.discountAmountLkr !== null) {
+		return { main: t('deal.amount_off', { amount: formatRs(d.discountAmountLkr) }), note };
+	}
+	return { main: t(`deal.type.${d.dealType as 'other'}`), note };
 }
 
 /** Compact LKR for tags: 750 -> "Rs 750", 1500 -> "Rs 1.5K", 25000 -> "Rs 25K". */

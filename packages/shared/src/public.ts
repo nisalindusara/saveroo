@@ -37,6 +37,10 @@ type DealBase = {
 	/** Banks and providers whose cards qualify; empty means open to everyone. */
 	providers: { slug: string; name: string }[];
 	hasCoupon: boolean;
+	/** First copy-type coupon code, shown on the card ("with code PEAK50"). */
+	couponCode: string | null;
+	/** Where it works: first branch city and branch count; null for online-only shops. */
+	place: { city: string; count: number } | null;
 };
 
 export type PublicDealCard = DealBase & {
