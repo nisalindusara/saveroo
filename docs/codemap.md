@@ -2,7 +2,7 @@
 
 A living map of the codebase. Update it whenever files or modules are added, moved or removed. Keep each entry to one line.
 
-Status: M3 admin tool (merchants, deals, images, CSV import, recheck, change log, expiry job) on top of M2 sign-in and the M1 database.
+Status: M4 public API (feed, search, category, merchant and deal endpoints with caching) on top of the M3 admin tool, M2 sign-in and the M1 database.
 
 ## Structure
 - `apps/web`: SvelteKit app (public pages, user app, `/admin`), deployed as Cloudflare Worker `saveroo-web`
@@ -31,7 +31,7 @@ Status: M3 admin tool (merchants, deals, images, CSV import, recheck, change log
 - `packages/shared/src/text.ts`: `parseCsv` for the CSV import
 - `packages/shared/src/images.ts`: image widths, size limits, `imageUrl()`; browser-safe import `@saveroo/shared/images`
 - `packages/shared/src/deal-text.ts`: `savingText`, `daysText`, `formatLkr` (admin preview, later public pages)
-- `supabase/migrations/*`: schema in order: extensions and helpers, reference data, merchants, profiles, deals, personalization, operations, profile-on-signup trigger
+- `supabase/migrations/*`: schema in order: extensions and helpers, reference data, merchants, profiles, deals, personalization, operations, profile-on-signup trigger, admin tools, public reads (and their faster version)
 - `supabase/seed/*`: categories, providers, card products (card names are placeholders to verify)
 - `packages/shared/src/i18n.ts`: `t()` and the English message table; browser code imports it from `@saveroo/shared/i18n`
 - `apps/api/src/index.ts`: API entry, mounts routes, JSON 404
@@ -42,6 +42,10 @@ Status: M3 admin tool (merchants, deals, images, CSV import, recheck, change log
 - `apps/api/src/health.ts`: `GET /health`, checks Supabase reachability
 - `apps/api/src/me.ts`: `GET /me`, the signed-in user's id, email, role and profile basics
 - `apps/api/src/validate.ts`: `readJson(c, schema)` validates request bodies (400 with field messages)
+- `apps/api/src/public.ts`: public endpoints (feed, categories, merchant, deal, search), one database call each
+- `apps/api/src/cache.ts`: `publicCache` (in-memory cache + Cache-Control) and `serverTiming`
+- `packages/shared/src/public.ts`: public reply types (`PublicDealCard`, `PublicDeal`, `PublicMerchant`, `Page`) and query rules
+- `scripts/perf/*`: 2,000-deal test data (local only) and `measure.mjs` for the speed budget
 - `apps/api/src/jobs.ts`: cron jobs (every 5 minutes): `expire_deals`
 - `apps/api/src/admin/index.ts`: mounts `/admin/*`, all behind `requireUser` + `requireAdmin`
 - `apps/api/src/admin/overview.ts`: dashboard, recheck queue, reference lists, audit log
@@ -65,6 +69,7 @@ Status: M3 admin tool (merchants, deals, images, CSV import, recheck, change log
 - `apps/web/src/routes/+page.server.ts` / `+page.svelte`: M0 hello page showing API and database status
 
 ## Data flow notes
+- Public read: client -> `GET /feed` (API) -> `publicCache` (HIT returns at once) -> `public_feed()` (one database call, returns cards) -> `{ data, nextCursor }`.
 - Admin save: form state -> hidden `payload` JSON -> page action -> `apiCall` -> `/admin/deals` -> zod check -> `admin_save_deal()` (deal + details + audit in one transaction).
 - Image: admin browser resizes -> `/admin/images` (web) -> `POST /admin/images` (API) -> `media` bucket -> key saved on the merchant or deal.
 - Sign-in: `/login` form -> Supabase sends a link (or Google) -> `/auth/callback?code=` swaps it for a session in cookies -> back to `next`.

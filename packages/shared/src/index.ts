@@ -9,5 +9,6 @@ export type { Database, Json, Tables, TablesInsert, TablesUpdate, Enums } from '
 export * from './health';
 export * from './i18n';
 export * from './images';
+export * from './public';
 export * from './text';
 export * from './time';

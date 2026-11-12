@@ -575,6 +575,9 @@ isOneToOne: false
 "admin_set_deal_status":
 { Args: { "p_actor": string,"p_deal_id": string,"p_status": Database["public"]['Enums']["deal_status"] }; Returns: undefined
                            },
+"deal_card":
+{ Args: { "p_deal": Omit<Database["public"]['Tables']["deals"]['Row'], Database["public"]['Tables']["deals"]['ComputedFields']>,"p_merchant": Omit<Database["public"]['Tables']["merchants"]['Row'], Database["public"]['Tables']["merchants"]['ComputedFields']> }; Returns: Json
+                           },
 "deal_snapshot":
 { Args: { "p_deal_id": string }; Returns: Json
                            },
@@ -589,6 +592,27 @@ isOneToOne: false
                            },
 "merchant_snapshot":
 { Args: { "p_merchant_id": string }; Returns: Json
+                           },
+"public_deal":
+{ Args: { "p_slug": string }; Returns: Json
+                           },
+"public_feed":
+{ Args: { "p_after_id"?: string,"p_after_ts"?: string,"p_category_slug"?: string,"p_limit"?: number,"p_merchant_slug"?: string }; Returns: {
+              "card": Json,"sort_id": string,"sort_ts": string
+            }[]
+                           },
+"public_merchant":
+{ Args: { "p_slug": string }; Returns: Json
+                           },
+"public_search_deals":
+{ Args: { "p_limit"?: number,"p_offset"?: number,"p_q": string }; Returns: {
+              "card": Json,"score": number
+            }[]
+                           },
+"public_search_merchants":
+{ Args: { "p_limit"?: number,"p_q": string }; Returns: {
+              "merchant": Json,"score": number
+            }[]
                            }
           }
           Enums: {

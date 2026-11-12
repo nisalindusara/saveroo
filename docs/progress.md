@@ -1,20 +1,18 @@
 # Progress
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 ## Current milestone
-**M3 Admin posting tool.** All "done when" items met on branch `feat/m3-admin` (CI green) and live on staging; owner approved. Waiting on owner merge.
+**M4 Public API.** All "done when" items met on branch `feat/m4-public-api`; staging database and API updated. Waiting on owner review and merge.
 
-M3 "done when" checklist:
-- [x] Admin can create a merchant with branches and a deal with eligible cards, Tuesday-only schedule, coupon code and images, preview it and publish it: verified end to end through the website forms against local Supabase
-- [x] Edits appear in the audit log (change log page, with before/after)
-- [x] A deal past its end date becomes expired within 10 minutes: cron every 5 minutes, verified locally by triggering the job; database test
-- [x] The recheck list shows deals due for checking ("Still running" moves the next check 14 days on)
-- [x] Also built: CSV import with per-row error report, duplicate warnings, dashboard
-- [x] Owner tried it in a real browser: created a merchant and a deal with a photo; reported two issues (saving fields per deal type, CSV import), both fixed; owner approved
-- [x] Website live (`pnpm deploy:web`); smoke-tested: visitors sent to log in from admin pages, cross-site form posts blocked
+M4 "done when" checklist:
+- [x] On 2,000 test deals, read endpoints meet the p95 budget: local database with 2,000 deals, p95 13-56 ms uncached and about 1 ms cached (budgets 300 / 100 ms); staging p95 53-62 ms uncached (mostly the Cloudflare-to-Mumbai network), 0 ms cached
+- [x] Typo search "scop cinemas" finds Scope Cinemas first (database test and live check)
+- [x] Cached responses carry correct headers: `Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=300`, `X-Cache: HIT|MISS`, `Age`; errors `no-store` (API tests and staging check)
 
 ## Done
+- 2026-11-12 M4: public endpoints (feed, categories, category, merchant, merchant deals, deal, search) with cursor paging, each one database call to a `public_*` function holding the single "is this deal public" rule; typo-tolerant search; in-memory caching with Cache-Control headers and Server-Timing; feed indexes. Found and fixed slow lists (cards were built for every matching deal before paging) and slow search (merchant names compared once per deal). Tools: `scripts/perf` (2,000-deal test data, timing script). Tests: 68 database, 24 API.
+- 2026-11-12 M3 merged (PR #4).
 - 2026-11-11 M3 code: admin database functions (atomic saves with audit, status rules, recheck, expiry, duplicates, bulk import, slugs), public `media` bucket, `deals.image_url`; API `/admin/*` (merchants, deals, images, CSV import, dashboard, recheck, reference, audit) and 5-minute cron; web admin pages (dashboard, merchants, deal form with cards/days/coupons/images, preview, recheck, import, change log). Tests: 54 database, 15 API, 2 web, 24 shared.
 - 2026-11-11 M2 merged (PR #3): email and Google sign-in, profiles, roles, `/me`, admin-only `/admin`.
 - 2026-11-11 M2 code: sign-in with email link and Google (server-side, cookies via `@supabase/ssr`), `/auth/callback`, `/logout`, header with log in/out, admin-only `/admin`; API `requireUser` (verifies ES256 tokens with Supabase's public keys) and `requireAdmin`, `GET /me`; database trigger creates profile and notification settings on sign-up; `pnpm user:role` with audit log. Tests: 23 database, 12 API, 2 web, 4 shared. Cross-site form posts are rejected (403) in the deployed build. Staging: migration applied, API and website deployed; Supabase redirect URLs and Google sign-in configured by the owner.
@@ -27,8 +25,8 @@ M3 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: open the PR for `feat/m3-admin`, review and merge into `main`.
-2. Claude Code: start M4 (public API: feed, search, category, merchant and deal endpoints with cursor paging and edge caching).
+1. Owner: open the PR for `feat/m4-public-api`, review and merge into `main`.
+2. Claude Code: start M5 (public web pages: Home, category, search, deal and merchant pages with SEO tags, sitemap and share previews).
 3. Owner: check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists. M3 has no screen for editing banks, cards or categories (not in its scope); decide: corrections as a database migration made by Claude Code, or a small reference-data screen later.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
@@ -61,6 +59,8 @@ M3 "done when" checklist:
 - 2026-11-11 Admin writes go through database functions (all-or-nothing, audit in the same transaction); CSV import is one database call because Workers free allows 50 outgoing requests per request.
 - 2026-11-11 Owner feedback: the deal form shows only the saving fields for the chosen deal type (e.g. % deals: discount %, maximum saving, minimum spend; no LKR discount). CSV import now accepts semicolon files and DD/MM/YYYY dates, lists the codes to use, and builds its example from real merchants (the first example used a merchant that did not exist on staging).
 - 2026-11-11 Deal image column `deals.image_url` added (not in the original data model; addition only). Image columns store an image key, not a URL.
+- 2026-11-12 Caching without a custom domain: the Cloudflare Cache API has no effect on workers.dev and KV allows 1,000 writes a day on free, so public replies are cached in the API Worker's memory (60 s) and carry Cache-Control headers; Cloudflare's edge cache starts working once a custom domain is connected (revisit then).
+- 2026-11-12 Public reads use database functions that return finished JSON, so each request makes one round trip to Mumbai (about 50 ms from Cloudflare).
 - 2026-11-11 Seed card products are generic placeholders (credit Visa, credit Mastercard, debit per bank; NTB Amex; telco loyalty and postpaid) until checked against real product lists.
 - 2026-11-10 Supabase region: Mumbai (`ap-south-1`), the closest to Sri Lanka. Staging was first created in Sydney by "Automatic", then deleted and recreated in Mumbai while still empty. Create `saveroo-prod` in Mumbai too.
 - 2026-11-10 TypeScript pinned to 6.x (SvelteKit 3 and typescript-eslint do not support 7 yet). Supabase CLI kept on 2.x until 3.x has been out a while.
