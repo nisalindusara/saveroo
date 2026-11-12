@@ -1,14 +1,15 @@
 <!--
 	Deal page: the full poster (never cropped) over a blurred copy of itself, opening full screen on tap;
-	a ticket sheet with the saving, valid days (today highlighted), eligible cards, coupon, branches,
-	how to use it, terms and when it was last checked; and a share bar. The poster continues the card's
-	view transition from the feed.
+	a sheet with the value line, where it works, valid days (today highlighted), eligible cards, coupon,
+	branches, how to use it, terms and when it was last checked; and a bottom bar with the main action
+	(copy the code, directions or the shop's website) plus WhatsApp share. The poster continues the
+	card's view transition from the feed.
 -->
 <script lang="ts">
 	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { daysText, savingText } from '@saveroo/shared/deal-text';
+	import { cardValue, daysText, formatRs, savingText } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
 	import { imageUrl, shareImageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
@@ -17,6 +18,7 @@
 	import DealCard from '#lib/components/public/DealCard.svelte';
 	import ExternalLink from '#lib/components/public/ExternalLink.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
+	import Rail from '#lib/components/public/Rail.svelte';
 	import RooTag from '#lib/components/public/RooTag.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import WeekStrip from '#lib/components/public/WeekStrip.svelte';
@@ -30,8 +32,13 @@
 	const today = $derived(validOn(deal, data.today));
 	const daysLeft = $derived(endsWithin(deal, 7));
 	const saving = $derived(savingText(deal));
-	// The tag already shows the headline number; repeat the text only when it adds a cap or minimum spend.
-	const savingDetail = $derived(deal.maxSavingLkr !== null || deal.minSpendLkr !== null || deal.dealPriceLkr !== null ? saving : null);
+	const value = $derived(cardValue(deal));
+	const conditions = $derived(
+		[
+			deal.maxSavingLkr !== null ? t('deal.up_to', { amount: formatRs(deal.maxSavingLkr) }) : '',
+			deal.minSpendLkr !== null ? t('deal.min_spend', { amount: formatRs(deal.minSpendLkr) }) : ''
+		].filter(Boolean)
+	);
 	const colours = $derived(posterColours(deal.merchant.name));
 	const checkedDays = $derived(deal.lastCheckedAt ? Math.max(0, -colomboDaysUntil(deal.lastCheckedAt)) : null);
 	const shareText = $derived(`${deal.title} · ${deal.merchant.name} (${saving})`);
@@ -50,6 +57,34 @@
 	);
 
 	let showAllBranches = $state(false);
+	let copied = $state(false);
+
+	const mapsUrl = (b: { name: string; city: string | null; lat: number | null; lng: number | null }) =>
+		b.lat !== null && b.lng !== null
+			? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}`
+			: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${deal.merchant.name} ${b.name} ${b.city ?? ''}`)}`;
+
+	// The bottom bar's main action: copy the code, get directions, or open the shop's website.
+	const action = $derived(
+		deal.couponCode
+			? ({ kind: 'copy', code: deal.couponCode } as const)
+			: deal.branches.length && deal.channel !== 'online'
+				? ({ kind: 'link', href: mapsUrl(deal.branches[0]!), label: t('pub.deal.get_directions'), icon: 'pin' } as const)
+				: deal.merchant.websiteUrl
+					? ({ kind: 'link', href: deal.merchant.websiteUrl, label: t('pub.deal.visit_site_short'), icon: 'external' } as const)
+					: null
+	);
+
+	async function copyCode(code: string) {
+		try {
+			await navigator.clipboard.writeText(code);
+			copied = true;
+			navigator.vibrate?.(12);
+			setTimeout(() => (copied = false), 2200);
+		} catch {
+			// Clipboard blocked: the code is also shown on the page to copy by hand.
+		}
+	}
 	let lightbox = $state<HTMLDialogElement>();
 	let cameFromSite = $state(false);
 	afterNavigate(({ from }) => (cameFromSite = from !== null));
@@ -64,10 +99,6 @@
 		if (!(await nativeShare(deal.title, shareText, url))) window.open(whatsappUrl(shareText, url), '_blank', 'noopener');
 	}
 
-	const mapsUrl = (b: { name: string; city: string | null; lat: number | null; lng: number | null }) =>
-		b.lat !== null && b.lng !== null
-			? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}`
-			: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${deal.merchant.name} ${b.name} ${b.city ?? ''}`)}`;
 </script>
 
 <svelte:head>
@@ -110,6 +141,7 @@
 			</div>
 
 			<div class="relative flex justify-center px-6 pt-14 pb-11 md:px-10 md:py-10">
+				<div class="relative">
 				{#if deal.imageKey}
 					<button
 						type="button"
@@ -140,6 +172,8 @@
 						<span class="font-display text-3xl leading-tight font-extrabold">{deal.title}</span>
 					</div>
 				{/if}
+				<span class="sticker"><RooTag {deal} /></span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -156,11 +190,22 @@
 			<Icon name="chevron" size={15} stroke={2.4} />
 		</a>
 
-		<h1 class="font-display mt-3 text-[1.85rem] leading-[1.05] font-extrabold tracking-[-0.03em] text-balance md:text-4xl">{deal.title}</h1>
+		<h1 class="font-display mt-2 text-[1.75rem] leading-[1.08] font-extrabold tracking-[-0.03em] text-balance md:text-4xl">{deal.title}</h1>
+		<p class="mt-2 flex items-center gap-1.5 text-[0.88rem] text-ink-2">
+			{#if deal.place}
+				<Icon name="pin" size={15} stroke={2.2} />{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}
+			{:else}
+				<Icon name="globe" size={15} stroke={2.2} />{t('pub.card.online')}
+			{/if}
+		</p>
 
-		<div class="mt-5 flex items-center gap-4">
-			<RooTag {deal} size="lg" />
-			{#if savingDetail}<p class="text-[0.92rem] leading-snug font-medium text-ink-2">{savingDetail}</p>{/if}
+		<div class="value-box mt-5">
+			<p class="flex flex-wrap items-baseline gap-x-2">
+				{#if value.was}<s class="text-lg text-ink-2">{value.was}</s>{/if}
+				<span class="font-display text-[2.1rem] leading-none font-extrabold tracking-[-0.03em] text-roo-ink">{value.main}</span>
+				{#if value.pill}<span class="self-center rounded-md bg-leaf-soft px-2 py-0.5 text-sm font-extrabold text-leaf">{value.pill}</span>{/if}
+			</p>
+			{#if conditions.length}<p class="mt-1.5 text-[0.9rem] font-medium text-ink-2">{conditions.join(' · ')}</p>{/if}
 		</div>
 
 		<!-- When -->
@@ -285,20 +330,35 @@
 {#if more.length}
 	<section class="mx-auto mt-2 max-w-6xl md:mt-10">
 		<h2 class="font-display px-4 text-[1.35rem] font-extrabold tracking-tight">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
-		<div class="rail mt-3 pb-2">
-			{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="10.5rem" />{/each}
+		<div class="mt-3">
+			<Rail>
+				{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="15rem" />{/each}
+			</Rail>
 		</div>
 	</section>
 {/if}
 {/await}
 
-<!-- Share bar -->
-<div class="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-6 md:pb-0" style:view-transition-name="share-bar">
+<!-- Action bar: the main action plus WhatsApp share (WhatsApp is the main action when there is none). -->
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:inset-x-auto md:right-6 md:bottom-6 md:rounded-2xl md:border md:p-2 md:shadow-card" style:view-transition-name="share-bar">
 	<div class="mx-auto flex max-w-md gap-2">
-		<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f7f43] py-3.5 font-bold text-white shadow-card">
-			<Icon name="whatsapp" size={20} stroke={2} />{t('pub.deal.share_whatsapp')}
+		{#if action?.kind === 'copy'}
+			<button class="press flex flex-1 items-center justify-center gap-2 rounded-xl bg-roo px-4 py-3.5 font-bold text-white" onclick={() => copyCode(action.code)} aria-live="polite">
+				<Icon name={copied ? 'check' : 'copy'} size={19} stroke={2.4} />{copied ? t('pub.deal.copied') : t('pub.deal.copy_code_short', { code: action.code })}
+			</button>
+		{:else if action}
+			<ExternalLink href={action.href} class="press flex flex-1 items-center justify-center gap-2 rounded-xl bg-roo px-4 py-3.5 font-bold text-white">
+				<Icon name={action.icon} size={19} stroke={2.4} />{action.label}
+			</ExternalLink>
+		{/if}
+		<ExternalLink
+			href={whatsappUrl(shareText, page.url.href)}
+			class="press flex items-center justify-center gap-2 rounded-xl bg-[#0f7f43] px-4 py-3.5 font-bold text-white {action ? 'w-14 shrink-0 !px-0' : 'flex-1'}"
+			label={action ? t('pub.deal.share_whatsapp') : undefined}
+		>
+			<Icon name="whatsapp" size={20} stroke={2} />{#if !action}{t('pub.deal.share_whatsapp')}{/if}
 		</ExternalLink>
-		<button class="press grid w-14 place-items-center rounded-2xl border border-line bg-surface shadow-card" onclick={share} aria-label={t('pub.deal.share')}>
+		<button class="press grid w-14 shrink-0 place-items-center rounded-xl border border-line bg-surface" onclick={share} aria-label={t('pub.deal.share')}>
 			<Icon name="share" size={20} stroke={2.2} />
 		</button>
 	</div>
@@ -358,6 +418,19 @@
 	}
 	.sheet {
 		z-index: 2;
+	}
+	.value-box {
+		padding: 1rem 1.1rem;
+		border-radius: 1.2rem;
+		background: var(--roo-soft);
+	}
+	/* The Roo tag stuck on the poster's lower-left corner. */
+	.sticker {
+		position: absolute;
+		z-index: 2;
+		left: -0.9rem;
+		bottom: -1.1rem;
+		font-size: 1.15rem;
 	}
 	.block-card {
 		padding: 1rem;

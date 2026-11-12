@@ -1,13 +1,12 @@
 <!--
-	Poster wall: deal cards in balanced columns (2 on phones, up to 5 on wide screens) using each poster's
-	known shape. Loads the next page when the end comes into view (or with the button), appending only.
+	Deal grid: cards in even rows (1 column on phones, 2, 3, then 4 on wide screens), like a shop window.
+	Loads the next page when the end comes into view (or with the button), appending only.
+	Used on Home, category, merchant and search pages.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
 	import { t } from '@saveroo/shared/i18n';
 	import type { PublicDealCard } from '@saveroo/shared';
-	import { columnsFor, distribute } from '#lib/public/cards.js';
 	import DealCard from './DealCard.svelte';
 
 	let {
@@ -16,7 +15,7 @@
 		moreUrl,
 		today,
 		supabaseUrl,
-		priority = 2
+		priority = 1
 	}: {
 		deals: PublicDealCard[];
 		nextCursor: string | null;
@@ -28,11 +27,6 @@
 		priority?: number;
 	} = $props();
 
-	// Server render assumes a phone (2 columns); the browser re-balances for its width.
-	let count = $state(2);
-	// Cards rise in when they first appear; re-arranging columns (wider screen) must not replay it.
-	const seen = new SvelteSet<string>();
-	let settled = $state(false);
 	// svelte-ignore state_referenced_locally
 	let all = $state<PublicDealCard[]>([...deals]);
 	// svelte-ignore state_referenced_locally
@@ -40,9 +34,6 @@
 	let loading = $state(false);
 	let failed = $state(false);
 	let sentinel = $state<HTMLElement>();
-
-	const layout = $derived(distribute(all, count).columns);
-	const order = $derived(new Map(all.map((d, i) => [d.id, i])));
 
 	async function loadMore() {
 		if (!cursor || !moreUrl || loading) return;
@@ -63,38 +54,23 @@
 	}
 
 	onMount(() => {
-		const media = [720, 1100, 1400].map((w) => matchMedia(`(min-width: ${w}px)`));
-		const update = () => (count = columnsFor(innerWidth));
-		update();
-		for (const d of all) seen.add(d.id);
-		requestAnimationFrame(() => (settled = true));
-		media.forEach((m) => m.addEventListener('change', update));
-
 		const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
 			rootMargin: '900px 0px'
 		});
 		if (sentinel) observer.observe(sentinel);
-		return () => {
-			observer.disconnect();
-			media.forEach((m) => m.removeEventListener('change', update));
-		};
+		return () => observer.disconnect();
 	});
 </script>
 
-<div class="grid items-start gap-3 sm:gap-4" style:grid-template-columns="repeat({count}, minmax(0, 1fr))">
-	{#each layout as column, c (c)}
-		<div class="flex min-w-0 flex-col gap-4 sm:gap-5">
-			{#each column as deal (deal.id)}
-				{@const i = order.get(deal.id) ?? 0}
-				<DealCard {deal} {today} {supabaseUrl} index={i % 12} priority={i < priority} animate={!settled || !seen.has(deal.id)} />
-			{/each}
-		</div>
+<div class="grid grid-cols-1 gap-x-4 gap-y-7 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-4">
+	{#each all as deal, i (deal.id)}
+		<DealCard {deal} {today} {supabaseUrl} index={i % 12} priority={i < priority} />
 	{/each}
 </div>
 
 {#if cursor && moreUrl}
 	<div bind:this={sentinel} class="flex justify-center py-8">
-		<button class="press rounded-full border border-line bg-surface px-5 py-2.5 text-sm font-semibold shadow-card" onclick={loadMore} disabled={loading}>
+		<button class="press rounded-full border border-line bg-surface px-6 py-2.5 text-sm font-semibold" onclick={loadMore} disabled={loading}>
 			{loading ? t('pub.loading') : failed ? t('pub.retry') : t('pub.more')}
 		</button>
 	</div>

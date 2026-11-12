@@ -1,5 +1,5 @@
 // GET /data/search?q=&cursor=: the next page of search results (deal cards) for infinite scrolling.
-// Used by the Masonry component on the search page; passes the request to the API's search.
+// Used by the DealGrid component on the search page; passes the request to the API's search.
 import { json } from '@sveltejs/kit';
 import { searchQuerySchema, type PublicDealCard } from '@saveroo/shared';
 import { apiGet } from '#lib/server/api.js';

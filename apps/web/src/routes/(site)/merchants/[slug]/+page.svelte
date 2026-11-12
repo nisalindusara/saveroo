@@ -7,7 +7,7 @@
 	import { imageUrl } from '@saveroo/shared/images';
 	import ExternalLink from '#lib/components/public/ExternalLink.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
-	import Masonry from '#lib/components/public/Masonry.svelte';
+	import DealGrid from '#lib/components/public/DealGrid.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import { posterColours } from '#lib/public/cards.js';
 	import type { PageProps } from './$types';
@@ -66,7 +66,7 @@
 	<h2 class="font-display text-[1.35rem] font-extrabold tracking-tight">{t('pub.merchant.offers')}</h2>
 	<div class="mt-3.5">
 		{#if data.deals.length}
-			<Masonry
+			<DealGrid
 				deals={data.deals}
 				nextCursor={data.nextCursor}
 				moreUrl={(cursor) => `/data/feed?merchant=${m.slug}&cursor=${encodeURIComponent(cursor)}`}

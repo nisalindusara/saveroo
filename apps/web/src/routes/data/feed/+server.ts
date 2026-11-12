@@ -1,5 +1,5 @@
 // GET /data/feed?cursor=&category=&merchant=: the next page of deal cards for infinite scrolling.
-// Used by the Masonry component in the browser; passes the request to the API's public feed.
+// Used by the DealGrid component in the browser; passes the request to the API's public feed.
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { PublicDealCard } from '@saveroo/shared';

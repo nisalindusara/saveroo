@@ -5,7 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { t } from '@saveroo/shared/i18n';
 	import CategoryChips from '#lib/components/public/CategoryChips.svelte';
-	import Masonry from '#lib/components/public/Masonry.svelte';
+	import DealGrid from '#lib/components/public/DealGrid.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import { posterColours } from '#lib/public/cards.js';
 	import type { PageProps } from './$types';
@@ -45,7 +45,7 @@
 <div class="mx-auto mt-5 max-w-7xl px-4">
 	{#key data.category.slug}
 		{#if data.deals.length}
-			<Masonry
+			<DealGrid
 				deals={data.deals}
 				nextCursor={data.nextCursor}
 				moreUrl={(cursor) => `/data/feed?category=${data.category.slug}&cursor=${encodeURIComponent(cursor)}`}

@@ -1,5 +1,5 @@
-// Helpers for showing deals: valid today, days left, masonry columns, image sizes and a colour poster
-// for deals without an image. Used by the public DealCard, Masonry and deal page.
+// Helpers for showing deals: valid today, days left, the card frame and badge, image sizes and a colour
+// poster for deals without an image. Used by the public DealCard, DealGrid and deal page.
 import type { PublicDealCard } from '@saveroo/shared';
 import { colomboDaysUntil } from '@saveroo/shared/time';
 
@@ -22,35 +22,31 @@ export function posterRatio(card: Pick<PublicDealCard, 'imageKey' | 'imageRatio'
 	return card.imageRatio ?? 1;
 }
 
+/** Card image frame (width / height). Every card uses it, so rows line up like a shop window. */
+export const CARD_FRAME = 4 / 3;
+
 /**
- * Splits cards into `columns` columns, each card going to the currently shortest column, using the
- * known poster shapes. Adding cards later only appends to columns, so nothing on screen moves.
+ * True when a poster can fill the card frame (cropping a little); otherwise it is shown whole on a
+ * blurred copy of itself, so text on posters is never cut off.
  */
-export function distribute<T extends Pick<PublicDealCard, 'imageKey' | 'imageRatio'>>(
-	cards: T[],
-	columns: number,
-	heights: number[] = new Array(columns).fill(0),
-	into: T[][] = Array.from({ length: columns }, () => [])
-): { columns: T[][]; heights: number[] } {
-	// Card height relative to its width: the poster plus about 0.55 for the text below it.
-	for (const card of cards) {
-		const shortest = heights.indexOf(Math.min(...heights));
-		into[shortest]!.push(card);
-		heights[shortest]! += 1 / posterRatio(card) + 0.55;
-	}
-	return { columns: into, heights };
+export function fillsFrame(card: Pick<PublicDealCard, 'imageRatio'>): boolean {
+	return card.imageRatio !== null && card.imageRatio >= 1.2 && card.imageRatio <= 1.5;
 }
 
-/** Number of masonry columns for a viewport width (matches the CSS breakpoints). */
-export function columnsFor(width: number): number {
-	if (width >= 1400) return 5;
-	if (width >= 1100) return 4;
-	if (width >= 720) return 3;
-	return 2;
+/** The one badge a card shows on its image: last days first, then "works today", then "popular". */
+export function cardBadge(
+	card: Pick<PublicDealCard, 'endsAt' | 'validDays' | 'isFeatured'>,
+	today: number,
+	now = new Date()
+): { kind: 'ending'; days: number } | { kind: 'today' } | { kind: 'popular' } | null {
+	const days = endsWithin(card, 3, now);
+	if (days !== null) return { kind: 'ending', days };
+	if (validOn(card, today)) return { kind: 'today' };
+	return card.isFeatured ? { kind: 'popular' } : null;
 }
 
-/** `sizes` for card images: roughly one column of the masonry at each breakpoint. */
-export const CARD_SIZES = '(min-width: 1400px) 19vw, (min-width: 1100px) 23vw, (min-width: 720px) 31vw, 47vw';
+/** `sizes` for card images in the grid: 1 column on phones, then 2, 3 and 4 (max width 80rem). */
+export const CARD_SIZES = '(min-width: 1200px) 300px, (min-width: 900px) 31vw, (min-width: 560px) 48vw, 94vw';
 
 // Warm, distinct backgrounds for deals without an image, picked from the merchant name.
 const POSTER_COLOURS = [

@@ -1,6 +1,6 @@
 // Tests for the deal card helpers in cards.ts.
 import { describe, expect, it } from 'vitest';
-import { columnsFor, distribute, endsWithin, posterColours, posterRatio, validOn } from './cards';
+import { cardBadge, endsWithin, fillsFrame, posterColours, posterRatio, validOn } from './cards';
 
 const card = (imageRatio: number | null, imageKey: string | null = 'deals/2026-11/abcdef12') => ({ imageKey, imageRatio });
 
@@ -30,30 +30,23 @@ describe('posterRatio', () => {
 	});
 });
 
-describe('distribute', () => {
-	it('puts each card in the shortest column', () => {
-		const tall = card(0.5); // height 2 + 0.55
-		const wide = card(2); // height 0.5 + 0.55
-		const { columns } = distribute([tall, wide, wide, wide], 2);
-		expect(columns[0]).toEqual([tall]);
-		expect(columns[1]).toEqual([wide, wide, wide]);
-	});
-
-	it('appends later cards without moving earlier ones', () => {
-		const first = distribute([card(1), card(1)], 2);
-		const before = first.columns.map((c) => [...c]);
-		const next = distribute([card(1)], 2, first.heights, first.columns);
-		expect(next.columns[0]!.slice(0, before[0]!.length)).toEqual(before[0]);
-		expect(next.columns[1]!.slice(0, before[1]!.length)).toEqual(before[1]);
+describe('fillsFrame', () => {
+	it('fills the 4:3 frame only with near-4:3 images', () => {
+		expect(fillsFrame({ imageRatio: 1.33 })).toBe(true);
+		expect(fillsFrame({ imageRatio: 0.8 })).toBe(false);
+		expect(fillsFrame({ imageRatio: 1.78 })).toBe(false);
+		expect(fillsFrame({ imageRatio: null })).toBe(false);
 	});
 });
 
-describe('columnsFor', () => {
-	it('uses 2 columns on phones and more on wider screens', () => {
-		expect(columnsFor(360)).toBe(2);
-		expect(columnsFor(800)).toBe(3);
-		expect(columnsFor(1200)).toBe(4);
-		expect(columnsFor(1600)).toBe(5);
+describe('cardBadge', () => {
+	const now = new Date('2026-11-12T06:00:00Z'); // Thursday (4) in Colombo
+	const base = { endsAt: null, validDays: [] as number[], isFeatured: false };
+	it('puts last days first, then works today, then popular', () => {
+		expect(cardBadge({ ...base, endsAt: '2026-11-14T06:00:00Z' }, 4, now)).toEqual({ kind: 'ending', days: 2 });
+		expect(cardBadge({ ...base, validDays: [4] }, 4, now)).toEqual({ kind: 'today' });
+		expect(cardBadge({ ...base, validDays: [1], isFeatured: true }, 4, now)).toEqual({ kind: 'popular' });
+		expect(cardBadge({ ...base, validDays: [1] }, 4, now)).toBeNull();
 	});
 });
 

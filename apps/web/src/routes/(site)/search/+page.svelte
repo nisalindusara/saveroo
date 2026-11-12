@@ -10,7 +10,7 @@
 	import { imageUrl } from '@saveroo/shared/images';
 	import CategoryChips from '#lib/components/public/CategoryChips.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
-	import Masonry from '#lib/components/public/Masonry.svelte';
+	import DealGrid from '#lib/components/public/DealGrid.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import { posterColours } from '#lib/public/cards.js';
 	import type { PageProps } from './$types';
@@ -137,7 +137,7 @@
 			<div class="mt-3">
 				{#if data.deals.length}
 					{#key data.q}
-						<Masonry
+						<DealGrid
 							deals={data.deals}
 							nextCursor={data.nextCursor}
 							moreUrl={(cursor) => `/data/search?q=${encodeURIComponent(data.q)}&cursor=${encodeURIComponent(cursor)}`}
