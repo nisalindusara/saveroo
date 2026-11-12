@@ -3,15 +3,16 @@
 Last updated: 2026-11-12
 
 ## Current milestone
-**M5 Public web pages.** Built on branch `feat/m5-public-web`; staging database and API updated; website uploaded as a preview (`https://m5-public-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Waiting on the owner's phone test and the WhatsApp/Facebook preview check.
+**M5 Public web pages.** Built on branch `feat/m5-public-web`; staging database and API updated; website uploaded as a preview (`https://m5-public-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Design changed to the "shop window" direction after the owner's review (reference: Groupon). Waiting on the owner's phone test of the new design and the WhatsApp/Facebook preview check.
 
 M5 "done when" checklist:
-- [x] Lighthouse mobile performance at least 90 on Home and Deal: median of 3 runs on the staging preview, Home 97, Deal 95 (CLS 0, blocking time 12-82 ms). Note: under Lighthouse's simulated slow 4G the deal page's largest image appears at 2.7 s, slightly over the 2.5 s LCP budget written for ordinary 4G; recheck in M10 (custom domain edge caching will help).
-- [x] Layout works from 360 px: checked with phone-size screenshots (390 px) and narrow-screen rules; no horizontal scrolling
+- [ ] Lighthouse mobile performance at least 90 on Home and Deal: poster wall design passed (median of 3, Home 97, Deal 95). Shop window design: same range as the poster wall when measured side by side, but this machine was busy and runs swung from 60 to 96; re-measure medians before going live. Note: under Lighthouse's simulated slow 4G the deal page's largest image appears at 2.7 s, slightly over the 2.5 s LCP budget written for ordinary 4G; recheck in M10 (custom domain edge caching will help).
+- [x] Layout works from 360 px: checked with phone-size screenshots (390 px) and a 360 px check of home, deal, category, merchant and search (no horizontal scrolling); rechecked after the shop-window redesign
 - [ ] A shared deal link shows a preview image and title in WhatsApp and Facebook (owner: re-upload the deal image in the admin, so its share JPEG is made, then share the link)
 - [ ] Owner tries the preview on a phone; then promote to live
 
 ## Done
+- 2026-11-12 M5 design round (owner: "not very exciting"; reference Groupon, "no friction"): shop-window design. Cards in a 4:3 frame with one badge, shop, title, place, big value line (crossed-out price for price drops), pay-with banks or coupon code, week strip; even grid (1/2/3/4 columns) replacing the masonry; Home with category icons, a "today" banner, rows with arrow buttons on desktop; top bar with search on phones; deal page with value box, place line, Roo tag sticker and a bottom action bar (Copy code / Get directions / Visit website + WhatsApp). Clean white background. Database: `deal_card` adds `place` (city, branch count) and `couponCode` (migration `20261112153827_public_card_place.sql`, applied to staging). 10 demo deals with sample posters added to staging for testing (marked "DEMO DEAL" in their terms; remove before real users). Tests: 75 database, 24 API, 8 web, 34 shared.
 - 2026-11-12 M5: public pages (home, search, categories, category, merchant, deal, me, restyled login, error page), sitemap.xml and robots.txt, SEO and share tags with schema.org data, default share image. Design system "poster wall" (docs/design.md): Roo tag, week strip, bank chips, masonry by stored image shape, rails, colour posters, page transitions, dark mode, self-hosted display font. Admin uploader now stores the image shape and makes a 1200x630 JPEG share preview. API: `/home`, `/sitemap`; cards carry bank codes and image shape. Design reviewed with phone, desktop and dark screenshots of 2,000 local test deals with 40 generated sample posters; performance tuned (lighter rendering, off-screen cards skipped, single preloaded hero image, streamed extras); accessibility contrast and landmarks fixed. Tests: 73 database, 24 API, 9 web, 31 shared.
 - 2026-11-12 M4 merged (PR #5).
 - 2026-11-12 M4: public endpoints (feed, categories, category, merchant, merchant deals, deal, search) with cursor paging, each one database call to a `public_*` function holding the single "is this deal public" rule; typo-tolerant search; in-memory caching with Cache-Control headers and Server-Timing; feed indexes. Found and fixed slow lists (cards were built for every matching deal before paging) and slow search (merchant names compared once per deal). Tools: `scripts/perf` (2,000-deal test data, timing script). Tests: 68 database, 24 API.
@@ -28,8 +29,8 @@ M5 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: open the M5 preview on a phone and try it (see the message for steps); in its admin, replace the image of the "11.11" deal so it gets a share preview, then share that deal on WhatsApp and check it with the Facebook Sharing Debugger.
-2. Claude Code: fix feedback, promote the website, tick the boxes; owner merges `feat/m5-public-web`. Then M6 (wallet and best card).
+1. Owner: open the M5 preview on a phone and try the new shop-window design (see the message for steps); in its admin, replace the image of the "11.11" deal so it gets a share preview, then share that deal on WhatsApp and check it with the Facebook Sharing Debugger.
+2. Claude Code: fix feedback, re-measure Lighthouse on a quiet machine, remove the 10 demo deals when the owner says so, promote the website, tick the boxes; owner merges `feat/m5-public-web`. Then M6 (wallet and best card).
 3. Owner: check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists. M3 has no screen for editing banks, cards or categories (not in its scope); decide: corrections as a database migration made by Claude Code, or a small reference-data screen later.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
@@ -64,6 +65,7 @@ M5 "done when" checklist:
 - 2026-11-11 Deal image column `deals.image_url` added (not in the original data model; addition only). Image columns store an image key, not a URL.
 - 2026-11-12 Design direction for public pages: "poster wall" (docs/design.md). Self-hosted Bricolage Grotesque (OFL) for display text, system font for body; no icon library (own icons); no new npm dependencies.
 - 2026-11-12 Deal share previews are JPEGs made in the admin's browser at upload (WhatsApp needs JPEG/PNG under about 300 KB); bucket now allows image/jpeg. `deals.image_ratio` added (addition only).
+- 2026-11-12 Public design changed from "poster wall" (masonry, warm paper) to "shop window" (even grid, clean white, value-first cards), owner's choice after review with Groupon as reference. Posters are still never cropped: they fill the 4:3 card frame only when close to 4:3, otherwise they show whole on a blurred copy.
 - 2026-11-12 Bottom bar for M5 is Home, Search, Categories, Me; Wallet and Saved are added in M6 and M7.
 - 2026-11-12 Caching without a custom domain: the Cloudflare Cache API has no effect on workers.dev and KV allows 1,000 writes a day on free, so public replies are cached in the API Worker's memory (60 s) and carry Cache-Control headers; Cloudflare's edge cache starts working once a custom domain is connected (revisit then).
 - 2026-11-12 Public reads use database functions that return finished JSON, so each request makes one round trip to Mumbai (about 50 ms from Cloudflare).
