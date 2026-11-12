@@ -191,6 +191,8 @@ export const dealInputSchema = z
 		sourceUrl: url,
 		proofImageKey: imageKeySchema,
 		imageKey: imageKeySchema,
+		/** Width / height of the deal image, measured by the admin uploader. */
+		imageRatio: z.number().min(0.2).max(5).nullish().transform((v) => v ?? null),
 		affiliateUrl: url,
 		verification: dealVerificationSchema.default('unverified'),
 		startsAt: isoDateTime,

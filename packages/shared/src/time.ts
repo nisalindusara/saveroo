@@ -31,6 +31,25 @@ export function utcToColomboLocal(iso: string): string {
 	);
 }
 
+/** Day of the week in Colombo for a moment in time: 1 = Monday .. 7 = Sunday. */
+export function colomboDayOfWeek(at: Date = new Date()): number {
+	const day = new Date(at.getTime() + OFFSET_MINUTES * 60_000).getUTCDay();
+	return day === 0 ? 7 : day;
+}
+
+/** Whole days from now until `iso` in Colombo calendar days (0 = today, 1 = tomorrow). */
+export function colomboDaysUntil(iso: string, now: Date = new Date()): number {
+	const dayNumber = (d: Date) => Math.floor((d.getTime() + OFFSET_MINUTES * 60_000) / 86_400_000);
+	return dayNumber(new Date(iso)) - dayNumber(now);
+}
+
+/** UTC ISO string to a short readable Colombo date, e.g. "12 Nov". */
+export function formatColomboDate(iso: string): string {
+	return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Colombo', day: 'numeric', month: 'short' }).format(
+		new Date(iso)
+	);
+}
+
 /** UTC ISO string to a short readable Colombo date-time, e.g. "12 Nov 2026, 10:00". */
 export function formatColombo(iso: string): string {
 	return new Intl.DateTimeFormat('en-GB', {

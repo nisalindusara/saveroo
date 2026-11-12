@@ -2,6 +2,7 @@
 // Each makes one database call to a public_* function; replies are cached (see cache.ts).
 import { Hono, type Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
 	feedQuerySchema,
@@ -12,7 +13,10 @@ import {
 	type PublicCategory,
 	type PublicDeal,
 	type PublicDealCard,
+	type PublicHome,
 	type PublicMerchant,
+	type PublicSitemap,
+	colomboDayOfWeek,
 	type PublicMerchantMatch
 } from '@saveroo/shared';
 import { publicCache } from './cache';
@@ -47,30 +51,36 @@ const searchCursorSchema = z.object({ o: z.number().int().min(1).max(SEARCH_MAX_
 
 type FeedRow = { card: unknown; sort_ts: string; sort_id: string };
 
-/** Runs public_feed with paging; returns the reply body or an error response. */
-async function feedPage(
-	c: Context<PublicEnv>,
+/** One page of public_feed: cards and the cursor for the next page. */
+async function loadFeed(
+	db: Db,
 	filters: { category?: string; merchant?: string },
-	cursor: string | undefined
-) {
-	const after = decode(cursor, feedCursorSchema);
-	if (after === 'invalid') return errorResponse(c, 400, 'invalid_cursor', 'Invalid page cursor.');
-	const { data, error } = await c.get('db').rpc('public_feed', {
+	after: { t: string; i: string } | null
+): Promise<{ error: PostgrestError } | { cards: PublicDealCard[]; nextCursor: string | null }> {
+	const { data, error } = await db.rpc('public_feed', {
 		p_category_slug: filters.category,
 		p_merchant_slug: filters.merchant,
 		p_after_ts: after?.t,
 		p_after_id: after?.i,
 		p_limit: PAGE_SIZE + 1
 	});
-	if (error) return dbErrorResponse(c, error);
+	if (error) return { error };
 	const rows = data as FeedRow[];
 	const page = rows.slice(0, PAGE_SIZE);
 	const last = page[page.length - 1];
-	const body: Page<PublicDealCard> = {
-		data: page.map((r) => r.card as PublicDealCard),
-		nextCursor: rows.length > PAGE_SIZE && last ? encode({ t: last.sort_ts, i: last.sort_id }) : null,
-		error: null
+	return {
+		cards: page.map((r) => r.card as PublicDealCard),
+		nextCursor: rows.length > PAGE_SIZE && last ? encode({ t: last.sort_ts, i: last.sort_id }) : null
 	};
+}
+
+/** Runs public_feed with paging; returns the reply or an error response. */
+async function feedPage(c: Context<PublicEnv>, filters: { category?: string; merchant?: string }, cursor: string | undefined) {
+	const after = decode(cursor, feedCursorSchema);
+	if (after === 'invalid') return errorResponse(c, 400, 'invalid_cursor', 'Invalid page cursor.');
+	const result = await loadFeed(c.get('db'), filters, after);
+	if ('error' in result) return dbErrorResponse(c, result.error);
+	const body: Page<PublicDealCard> = { data: result.cards, nextCursor: result.nextCursor, error: null };
 	return c.json(body);
 }
 
@@ -78,6 +88,30 @@ const invalidQuery = (c: Parameters<typeof errorResponse>[0], error: z.ZodError)
 	errorResponse(c, 400, 'invalid_input', error.issues[0]?.message ?? 'Invalid query.');
 
 export const publicRoutes = new Hono<PublicEnv>()
+	// Home page in one request: valid today (Colombo weekday), ending soon, counts and the newest deals.
+	.get('/home', publicCache(60), useDb, async (c) => {
+		const db = c.get('db');
+		const [home, latest] = await Promise.all([
+			db.rpc('public_home', { p_dow: colomboDayOfWeek(), p_limit: 12 }),
+			loadFeed(db, {}, null)
+		]);
+		if (home.error) return dbErrorResponse(c, home.error);
+		if ('error' in latest) return dbErrorResponse(c, latest.error);
+		const rails = home.data as Omit<PublicHome, 'latest' | 'latestCursor'>;
+		const body: ApiResponse<PublicHome> = {
+			data: { ...rails, latest: latest.cards, latestCursor: latest.nextCursor },
+			error: null
+		};
+		return c.json(body);
+	})
+
+	.get('/sitemap', publicCache(3600), useDb, async (c) => {
+		const { data, error } = await c.get('db').rpc('public_sitemap');
+		if (error) return dbErrorResponse(c, error);
+		const body: ApiResponse<PublicSitemap> = { data: data as PublicSitemap, error: null };
+		return c.json(body);
+	})
+
 	// Newest public deals, optionally in one category (with its sub-categories).
 	.get('/feed', publicCache(60), useDb, async (c) => {
 		const query = feedQuerySchema.safeParse(c.req.query());

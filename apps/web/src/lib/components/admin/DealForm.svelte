@@ -57,6 +57,7 @@
 	let verification = $state(d?.verification ?? 'unverified');
 	let isFeatured = $state(d?.isFeatured ?? false);
 	let imageKey = $state<string | null>(d?.imageKey ?? null);
+	let imageRatio = $state<number | null>(d?.imageRatio ?? null);
 	let proofImageKey = $state<string | null>(d?.proofImageKey ?? null);
 	let branchIds = $state<string[]>(d?.branchIds ?? []);
 	let eligibility = $state(
@@ -116,6 +117,7 @@
 			verification,
 			isFeatured,
 			imageKey,
+			imageRatio: imageKey ? imageRatio : null,
 			proofImageKey,
 			branchIds,
 			eligibility: eligibility.map((e) => ({
@@ -388,7 +390,7 @@
 	<section class="space-y-4">
 		<h2 class="text-lg font-semibold">{t('admin.deal.details')}</h2>
 		<div class="grid gap-4 md:grid-cols-2">
-			<ImageField label={t('admin.deal.image')} kind="deals" {supabaseUrl} bind:value={imageKey} error={fields.imageKey} />
+			<ImageField label={t('admin.deal.image')} kind="deals" {supabaseUrl} share bind:value={imageKey} bind:ratio={imageRatio} error={fields.imageKey} />
 			<ImageField label={t('admin.deal.proof')} kind="deals" {supabaseUrl} bind:value={proofImageKey} error={fields.proofImageKey} />
 		</div>
 		<Field label={t('admin.deal.terms')} error={fields.terms}>

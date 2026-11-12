@@ -26,14 +26,16 @@ type DealBase = {
 	originalPriceLkr: number | null;
 	dealPriceLkr: number | null;
 	imageKey: string | null;
+	/** Image width / height; null for images uploaded before M5 (no share JPEG either). */
+	imageRatio: number | null;
 	channel: 'in_store' | 'online' | 'both';
 	startsAt: string;
 	endsAt: string | null;
 	isFeatured: boolean;
 	/** 1 = Mon .. 7 = Sun; empty means every day. */
 	validDays: number[];
-	/** Bank and provider names whose cards qualify; empty means open to everyone. */
-	providers: string[];
+	/** Banks and providers whose cards qualify; empty means open to everyone. */
+	providers: { slug: string; name: string }[];
 	hasCoupon: boolean;
 };
 
@@ -103,6 +105,23 @@ export type PublicCategory = {
 };
 
 export type PublicMerchantMatch = { slug: string; name: string; logoKey: string | null; liveDeals: number };
+
+export type PublicHome = {
+	/** Valid today (Colombo weekday), featured first. */
+	today: PublicDealCard[];
+	/** Ending within 7 days, soonest first. */
+	ending: PublicDealCard[];
+	counts: { live: number; today: number; merchants: number };
+	/** First page of the newest deals. */
+	latest: PublicDealCard[];
+	latestCursor: string | null;
+};
+
+export type PublicSitemap = {
+	deals: { slug: string; updatedAt: string }[];
+	merchants: { slug: string; updatedAt: string }[];
+	categories: { slug: string; updatedAt: string }[];
+};
 
 /** A page of results: `nextCursor` is null on the last page. */
 export type Page<T> = { data: T[]; nextCursor: string | null; error: null };
