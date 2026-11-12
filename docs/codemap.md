@@ -2,7 +2,7 @@
 
 A living map of the codebase. Update it whenever files or modules are added, moved or removed. Keep each entry to one line.
 
-Status: M4 public API (feed, search, category, merchant and deal endpoints with caching) on top of the M3 admin tool, M2 sign-in and the M1 database.
+Status: M5 public web pages (poster wall design) on top of the M4 public API, M3 admin tool, M2 sign-in and M1 database.
 
 ## Structure
 - `apps/web`: SvelteKit app (public pages, user app, `/admin`), deployed as Cloudflare Worker `saveroo-web`
@@ -58,7 +58,7 @@ Status: M4 public API (feed, search, category, merchant and deal endpoints with 
 - `apps/web/src/hooks.server.ts`: per-request Supabase client (login cookies) and `locals.getSession()`
 - `apps/web/src/lib/server/api.ts`: `apiFetch` / `apiCall`, the only way web server code calls the API (service binding when deployed, plain fetch in dev)
 - `apps/web/src/lib/safe-next.ts`: keeps post-login redirects inside the site
-- `apps/web/src/routes/+layout.*`: header with log in / log out (replaced by full navigation in M5)
+- `apps/web/src/routes/+layout.*`: global styles, page transitions, signed-in user, image base address, Colombo weekday
 - `apps/web/src/routes/login`: email link and Google sign-in; `auth/callback`: finishes sign-in; `logout`: POST to log out
 - `apps/web/src/routes/admin`: admin-only area (guard in `+layout.server.ts`)
 - `apps/web/src/lib/server/admin.ts`: `adminSession`, `readPayload`, `failLoad` for admin pages
@@ -66,7 +66,13 @@ Status: M4 public API (feed, search, category, merchant and deal endpoints with 
 - `apps/web/src/lib/components/admin/*`: `DealForm`, `MerchantForm`, `ImageField`, `DealTable`, `StatusBadge`, `Field`
 - `apps/web/src/lib/url.ts`: `withParam` for paging links
 - `apps/web/src/routes/admin/*`: dashboard, `deals` (list, new, `[id]`, `[id]/preview`), `merchants` (list, new, `[id]`), `recheck`, `import`, `audit`, `images` (upload pass-through)
-- `apps/web/src/routes/+page.server.ts` / `+page.svelte`: M0 hello page showing API and database status
+- `apps/web/src/routes/(site)/*`: public pages (home, search, categories, category, merchant, deal, me, login) and their frame (top bar, footer, bottom bar)
+- `apps/web/src/routes/data/*`: next pages of cards for infinite scroll; `sitemap.xml`, `robots.txt`: for search engines
+- `apps/web/src/lib/components/public/*`: `DealCard`, `Masonry`, `RooTag`, `WeekStrip`, `BankChips`, `CouponTicket`, `CategoryChips`, `Section`, `TopBar`, `BottomNav`, `Logo`, `Icon`, `Seo`, `ExternalLink`
+- `apps/web/src/lib/public/cards.ts`: valid today, days left, masonry placement, colour posters; `share.ts`: WhatsApp and share sheet
+- `packages/shared/src/providers.ts`: short bank names; `deal-text.ts` also has `savingTag` (Roo tag text)
+- `apps/web/static/fonts`, `static/og-default.png`: display font (OFL) and default share image
+- `docs/design.md`: the design system
 
 ## Data flow notes
 - Public read: client -> `GET /feed` (API) -> `publicCache` (HIT returns at once) -> `public_feed()` (one database call, returns cards) -> `{ data, nextCursor }`.

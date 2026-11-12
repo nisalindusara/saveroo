@@ -11,6 +11,7 @@ Read `progress.md` first in every session. Then open only what the task needs.
 | `architecture.md` | Tech stack and why, repo layout, conventions, performance budgets, security | Any technical decision |
 | `data-model.md` | Every table, columns, relations, key logic (usable deals, next valid date) | Touching the database or writing queries |
 | `screens.md` | Screens and user flows | Building any UI |
+| `design.md` | Design system: concept, tokens, type, signature components, motion and performance rules | Building or changing any public UI |
 | `revenue-model.md` | Staged money model, premium rules, data policy | Anything involving ads, premium, partners or data |
 | `location-and-alerts.md` | Shopping Mode, valid-day reminders, notification rules, location privacy | Notifications, reminders, location |
 | `dev-setup-windows.md` | Setting up the owner's Windows machine and accounts | Environment problems or new accounts |

@@ -3,14 +3,17 @@
 Last updated: 2026-11-12
 
 ## Current milestone
-**M4 Public API.** All "done when" items met on branch `feat/m4-public-api`; staging database and API updated. Waiting on owner review and merge.
+**M5 Public web pages.** Built on branch `feat/m5-public-web`; staging database and API updated; website uploaded as a preview (`https://m5-public-saveroo-web.paranawithananisal19.workers.dev`), not yet live. Waiting on the owner's phone test and the WhatsApp/Facebook preview check.
 
-M4 "done when" checklist:
-- [x] On 2,000 test deals, read endpoints meet the p95 budget: local database with 2,000 deals, p95 13-56 ms uncached and about 1 ms cached (budgets 300 / 100 ms); staging p95 53-62 ms uncached (mostly the Cloudflare-to-Mumbai network), 0 ms cached
-- [x] Typo search "scop cinemas" finds Scope Cinemas first (database test and live check)
-- [x] Cached responses carry correct headers: `Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=300`, `X-Cache: HIT|MISS`, `Age`; errors `no-store` (API tests and staging check)
+M5 "done when" checklist:
+- [x] Lighthouse mobile performance at least 90 on Home and Deal: median of 3 runs on the staging preview, Home 97, Deal 95 (CLS 0, blocking time 12-82 ms). Note: under Lighthouse's simulated slow 4G the deal page's largest image appears at 2.7 s, slightly over the 2.5 s LCP budget written for ordinary 4G; recheck in M10 (custom domain edge caching will help).
+- [x] Layout works from 360 px: checked with phone-size screenshots (390 px) and narrow-screen rules; no horizontal scrolling
+- [ ] A shared deal link shows a preview image and title in WhatsApp and Facebook (owner: re-upload the deal image in the admin, so its share JPEG is made, then share the link)
+- [ ] Owner tries the preview on a phone; then promote to live
 
 ## Done
+- 2026-11-12 M5: public pages (home, search, categories, category, merchant, deal, me, restyled login, error page), sitemap.xml and robots.txt, SEO and share tags with schema.org data, default share image. Design system "poster wall" (docs/design.md): Roo tag, week strip, bank chips, masonry by stored image shape, rails, colour posters, page transitions, dark mode, self-hosted display font. Admin uploader now stores the image shape and makes a 1200x630 JPEG share preview. API: `/home`, `/sitemap`; cards carry bank codes and image shape. Design reviewed with phone, desktop and dark screenshots of 2,000 local test deals with 40 generated sample posters; performance tuned (lighter rendering, off-screen cards skipped, single preloaded hero image, streamed extras); accessibility contrast and landmarks fixed. Tests: 73 database, 24 API, 9 web, 31 shared.
+- 2026-11-12 M4 merged (PR #5).
 - 2026-11-12 M4: public endpoints (feed, categories, category, merchant, merchant deals, deal, search) with cursor paging, each one database call to a `public_*` function holding the single "is this deal public" rule; typo-tolerant search; in-memory caching with Cache-Control headers and Server-Timing; feed indexes. Found and fixed slow lists (cards were built for every matching deal before paging) and slow search (merchant names compared once per deal). Tools: `scripts/perf` (2,000-deal test data, timing script). Tests: 68 database, 24 API.
 - 2026-11-12 M3 merged (PR #4).
 - 2026-11-11 M3 code: admin database functions (atomic saves with audit, status rules, recheck, expiry, duplicates, bulk import, slugs), public `media` bucket, `deals.image_url`; API `/admin/*` (merchants, deals, images, CSV import, dashboard, recheck, reference, audit) and 5-minute cron; web admin pages (dashboard, merchants, deal form with cards/days/coupons/images, preview, recheck, import, change log). Tests: 54 database, 15 API, 2 web, 24 shared.
@@ -25,8 +28,8 @@ M4 "done when" checklist:
 - Removed the earlier Next.js `web/` scaffold (empty placeholder files; still in git history, commit 7991e09, if its page list is useful for M5).
 
 ## Next
-1. Owner: open the PR for `feat/m4-public-api`, review and merge into `main`.
-2. Claude Code: start M5 (public web pages: Home, category, search, deal and merchant pages with SEO tags, sitemap and share previews).
+1. Owner: open the M5 preview on a phone and try it (see the message for steps); in its admin, replace the image of the "11.11" deal so it gets a share preview, then share that deal on WhatsApp and check it with the Facebook Sharing Debugger.
+2. Claude Code: fix feedback, promote the website, tick the boxes; owner merges `feat/m5-public-web`. Then M6 (wallet and best card).
 3. Owner: check the 40 placeholder card names in `supabase/seed/03_card_products.sql` against the banks' real card lists. M3 has no screen for editing banks, cards or categories (not in its scope); decide: corrections as a database migration made by Claude Code, or a small reference-data screen later.
 
 ## Limit checks (M0, checked 2026-11-10 on vendor pages)
@@ -59,6 +62,9 @@ M4 "done when" checklist:
 - 2026-11-11 Admin writes go through database functions (all-or-nothing, audit in the same transaction); CSV import is one database call because Workers free allows 50 outgoing requests per request.
 - 2026-11-11 Owner feedback: the deal form shows only the saving fields for the chosen deal type (e.g. % deals: discount %, maximum saving, minimum spend; no LKR discount). CSV import now accepts semicolon files and DD/MM/YYYY dates, lists the codes to use, and builds its example from real merchants (the first example used a merchant that did not exist on staging).
 - 2026-11-11 Deal image column `deals.image_url` added (not in the original data model; addition only). Image columns store an image key, not a URL.
+- 2026-11-12 Design direction for public pages: "poster wall" (docs/design.md). Self-hosted Bricolage Grotesque (OFL) for display text, system font for body; no icon library (own icons); no new npm dependencies.
+- 2026-11-12 Deal share previews are JPEGs made in the admin's browser at upload (WhatsApp needs JPEG/PNG under about 300 KB); bucket now allows image/jpeg. `deals.image_ratio` added (addition only).
+- 2026-11-12 Bottom bar for M5 is Home, Search, Categories, Me; Wallet and Saved are added in M6 and M7.
 - 2026-11-12 Caching without a custom domain: the Cloudflare Cache API has no effect on workers.dev and KV allows 1,000 writes a day on free, so public replies are cached in the API Worker's memory (60 s) and carry Cache-Control headers; Cloudflare's edge cache starts working once a custom domain is connected (revisit then).
 - 2026-11-12 Public reads use database functions that return finished JSON, so each request makes one round trip to Mumbai (about 50 ms from Cloudflare).
 - 2026-11-11 Seed card products are generic placeholders (credit Visa, credit Mastercard, debit per bank; NTB Amex; telco loyalty and postpaid) until checked against real product lists.

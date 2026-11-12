@@ -77,6 +77,12 @@ Client (web, mobile, extension) -> Hono API on Cloudflare (validates with zod, c
 - Caching: `publicCache` (`apps/api/src/cache.ts`) sets `Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=300`, `X-Cache: HIT|MISS` and `Age`; errors are `no-store`. Every response has `Server-Timing: app;dur=<ms>`.
 - Measured 2026-11-12 (`scripts/perf`): local database with 2,000 deals, p95 13-56 ms uncached, about 1 ms cached; staging (Cloudflare to Supabase Mumbai), p95 53-62 ms uncached, 0 ms cached.
 
+### Public web pages (M5)
+- Routes in `apps/web/src/routes/(site)`: `/` (home), `/search`, `/categories`, `/categories/[slug]`, `/merchants/[slug]`, `/deals/[slug]`, `/me`, `/login`; plus `/sitemap.xml`, `/robots.txt`, and `/data/feed`, `/data/search` (next pages for infinite scroll). All server-rendered from the public API through `apiGet`; pages set short `Cache-Control` headers.
+- Home uses `GET /home` (valid today for the Colombo weekday, ending soon, counts, newest page) and `GET /categories`. The deal page streams "more from this merchant" after the first paint.
+- Look and motion: see `design.md`. Every page has title, description, canonical, Open Graph and Twitter tags (`Seo.svelte`); deals add schema.org `Offer` data.
+- Lighthouse mobile on staging (median of 3, 2026-11-12): Home 97, Deal 95, CLS 0; accessibility 95-100, best practices 100. SEO shows 69 only on preview addresses because Cloudflare marks them `noindex`.
+
 ## Performance budgets (requirements)
 - Largest Contentful Paint at most 2.5 s on a mid-range Android over 4G.
 - Initial JavaScript at most 150 KB gzipped on public pages.
