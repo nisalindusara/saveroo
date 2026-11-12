@@ -1,6 +1,6 @@
 // Tests for the deal texts in deal-text.ts.
 import { describe, expect, it } from 'vitest';
-import { daysText, savingText } from './deal-text';
+import { daysText, savingTag, savingText } from './deal-text';
 
 const none = { discountPercent: null, discountAmountLkr: null, maxSavingLkr: null, minSpendLkr: null, dealPriceLkr: null };
 
@@ -14,6 +14,20 @@ describe('savingText', () => {
 	it('shows an amount off or the deal type when there is no number', () => {
 		expect(savingText({ ...none, dealType: 'amount_off', discountAmountLkr: 750 })).toBe('LKR 750 off');
 		expect(savingText({ ...none, dealType: 'bogo' })).toBe('Buy one, get one free');
+	});
+});
+
+describe('savingTag', () => {
+	it('shows the percentage, amount or deal price compactly', () => {
+		expect(savingTag({ ...none, dealType: 'percent_off', discountPercent: 50 })).toEqual({ big: '50%', small: 'OFF' });
+		expect(savingTag({ ...none, dealType: 'amount_off', discountAmountLkr: 750 })).toEqual({ big: 'Rs 750', small: 'OFF' });
+		expect(savingTag({ ...none, dealType: 'amount_off', discountAmountLkr: 1500 })).toEqual({ big: 'Rs 1.5K', small: 'OFF' });
+		expect(savingTag({ ...none, dealType: 'price_drop', dealPriceLkr: 25000 })).toEqual({ big: 'Rs 25K', small: 'NOW' });
+	});
+
+	it('uses words for deals without a number', () => {
+		expect(savingTag({ ...none, dealType: 'bogo' })).toEqual({ big: '1+1', small: 'FREE' });
+		expect(savingTag({ ...none, dealType: 'other' })).toEqual({ big: 'DEAL', small: 'SPECIAL' });
 	});
 });
 

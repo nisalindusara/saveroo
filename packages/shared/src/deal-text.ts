@@ -27,6 +27,26 @@ export function savingText(d: SavingFields): string {
 	return parts.join(' · ');
 }
 
+/** Compact LKR for tags: 750 -> "Rs 750", 1500 -> "Rs 1.5K", 25000 -> "Rs 25K". */
+export function shortLkr(amount: number): string {
+	if (amount < 1000) return `Rs ${Math.round(amount)}`;
+	const k = amount / 1000;
+	return `Rs ${k >= 10 || Number.isInteger(k) ? Math.round(k) : k.toFixed(1)}K`;
+}
+
+/** The two-line "Roo tag" on a deal card: a big value and a small word, e.g. "50%" / "OFF". */
+export function savingTag(d: SavingFields): { big: string; small: string } {
+	if (d.discountPercent !== null) return { big: `${Math.round(d.discountPercent)}%`, small: t('tag.off') };
+	if (d.discountAmountLkr !== null) return { big: shortLkr(d.discountAmountLkr), small: t('tag.off') };
+	if (d.dealPriceLkr !== null) return { big: shortLkr(d.dealPriceLkr), small: t('tag.now') };
+	const words: Record<string, { big: string; small: string }> = {
+		bogo: { big: '1+1', small: t('tag.free') },
+		freebie: { big: t('tag.gift'), small: t('tag.free') },
+		cashback: { big: t('tag.cash'), small: t('tag.back') }
+	};
+	return words[d.dealType] ?? { big: t('tag.deal'), small: t('tag.special') };
+}
+
 /** "Every day", "Weekends", "Weekdays" or a list like "Tue and Thu" (days are 1 = Mon to 7 = Sun). */
 export function daysText(days: number[]): string {
 	const sorted = [...new Set(days)].sort();

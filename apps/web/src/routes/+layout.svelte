@@ -1,31 +1,33 @@
 <!--
-	Shell for every page: global styles, favicon and a minimal header with log in / log out.
-	The full navigation (Home, Search, Wallet, Saved, Profile) arrives with the public pages in M5.
+	Shell for every page: global styles, icons and smooth page changes (View Transitions where the
+	browser supports them, skipped when the user prefers less motion). Public pages add their own
+	header and bottom bar in (site)/+layout.svelte; the admin area has its own.
 -->
 <script lang="ts">
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
-	import { resolve } from '$app/paths';
-	import { t } from '@saveroo/shared/i18n';
+	import { onNavigate } from '$app/navigation';
 	import type { LayoutProps } from './$types';
 
-	let { data, children }: LayoutProps = $props();
+	let { children }: LayoutProps = $props();
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		// Same page with a new query (search typing, filters): no transition.
+		if (navigation.from?.url.pathname === navigation.to?.url.pathname) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href={favicon} type="image/svg+xml" />
+	<meta name="theme-color" content="#fbf7f1" media="(prefers-color-scheme: light)" />
+	<meta name="theme-color" content="#12100e" media="(prefers-color-scheme: dark)" />
 </svelte:head>
-
-<header class="mx-auto flex max-w-md items-center justify-between gap-4 px-4 py-3 text-sm">
-	<a href={resolve('/')} class="font-bold">{t('app.name')}</a>
-	{#if data.user}
-		<form method="POST" action="/logout" class="flex items-center gap-3">
-			<span class="truncate text-gray-600">{t('auth.signed_in_as', { email: data.user.email ?? '' })}</span>
-			<button type="submit" class="shrink-0 underline">{t('auth.logout')}</button>
-		</form>
-	{:else}
-		<a href={resolve('/login')} class="underline">{t('auth.login')}</a>
-	{/if}
-</header>
 
 {@render children()}

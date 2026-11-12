@@ -1,1 +1,175 @@
+/*
+	Saveroo design tokens and base styles (see docs/design.md). One styling approach: Tailwind classes
+	that use these tokens, plus a few shared component classes below. Light and dark follow the device.
+*/
 @import 'tailwindcss';
+
+@font-face {
+	font-family: 'Bricolage Grotesque';
+	src: url('/fonts/bricolage-grotesque-latin.woff2') format('woff2');
+	font-weight: 500 800;
+	font-display: swap;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+}
+/* Metric-matched fallback so text does not jump when the font arrives. */
+@font-face {
+	font-family: 'Bricolage Fallback';
+	src: local('Arial');
+	size-adjust: 103%;
+	ascent-override: 92%;
+	descent-override: 26%;
+}
+
+:root {
+	--bg: #fbf7f1;
+	--surface: #ffffff;
+	--surface-2: #f3ece2;
+	--ink: #1a1410;
+	--ink-2: #6b6056;
+	--line: rgb(26 20 16 / 0.1);
+	--roo: #ff5a1f;
+	--roo-ink: #c2410c;
+	--roo-soft: #ffe8dc;
+	--leaf: #0f8a5f;
+	--leaf-soft: #dcf3e8;
+	--sun: #f5a300;
+	--sun-soft: #fff1c9;
+	--shadow: 0 1px 2px rgb(26 20 16 / 0.06), 0 8px 24px -8px rgb(26 20 16 / 0.18);
+	color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #12100e;
+		--surface: #1c1916;
+		--surface-2: #27221e;
+		--ink: #f6efe6;
+		--ink-2: #a99e92;
+		--line: rgb(246 239 230 / 0.12);
+		--roo: #ff6a33;
+		--roo-ink: #ff8a5c;
+		--roo-soft: #3b1f13;
+		--leaf: #3ccf95;
+		--leaf-soft: #12291f;
+		--sun: #ffc633;
+		--sun-soft: #33280b;
+		--shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px -10px rgb(0 0 0 / 0.7);
+		color-scheme: dark;
+	}
+}
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-surface-2: var(--surface-2);
+	--color-ink: var(--ink);
+	--color-ink-2: var(--ink-2);
+	--color-line: var(--line);
+	--color-roo: var(--roo);
+	--color-roo-ink: var(--roo-ink);
+	--color-roo-soft: var(--roo-soft);
+	--color-leaf: var(--leaf);
+	--color-leaf-soft: var(--leaf-soft);
+	--color-sun: var(--sun);
+	--color-sun-soft: var(--sun-soft);
+	--shadow-card: var(--shadow);
+}
+
+/* Static values: also emitted as CSS variables, so component styles can use var(--font-display) etc. */
+@theme static {
+	--font-display: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif;
+	--ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+	background: var(--bg);
+	color: var(--ink);
+	-webkit-tap-highlight-color: transparent;
+	text-rendering: optimizeLegibility;
+}
+body {
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+:focus-visible {
+	outline: 2.5px solid var(--roo);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+::selection {
+	background: var(--roo-soft);
+}
+
+/* Press feedback for anything tappable. */
+.press {
+	transition: transform 160ms var(--ease-out-expo);
+}
+.press:active {
+	transform: scale(0.96);
+}
+
+/* Horizontal scroller with snap and no visible scrollbar. */
+.rail {
+	display: flex;
+	gap: 0.75rem;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	scroll-padding-inline: 1rem;
+	padding-inline: 1rem;
+	scrollbar-width: none;
+	overscroll-behavior-x: contain;
+}
+.rail::-webkit-scrollbar {
+	display: none;
+}
+.rail > * {
+	scroll-snap-align: start;
+	flex: none;
+}
+
+/* Cards rise into view once, the first time they appear. */
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(14px) scale(0.985);
+	}
+}
+.rise {
+	animation: rise 520ms var(--ease-out-expo) both;
+	animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Placeholder shimmer while images load. */
+@keyframes shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+.shimmer {
+	background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface) 50%, var(--surface-2) 70%) 0 0 / 200% 100%;
+	animation: shimmer 1.4s linear infinite;
+}
+
+/* Page transitions (View Transitions API, Chrome and Edge; others just switch pages). */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 220ms;
+	animation-timing-function: var(--ease-out-expo);
+}
+::view-transition-group(*) {
+	animation-duration: 380ms;
+	animation-timing-function: var(--ease-out-expo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after,
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation-duration: 1ms !important;
+		animation-delay: 0ms !important;
+		transition-duration: 1ms !important;
+	}
+}

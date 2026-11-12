@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { t } from '@saveroo/shared/i18n';
+	import Logo from '#lib/components/public/Logo.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -20,6 +21,11 @@
 	const active = (href: string, exact?: boolean) =>
 		exact ? page.url.pathname === href : page.url.pathname.startsWith(href);
 </script>
+
+<header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+	<a href={resolve('/(site)')} class="flex items-center gap-2"><Logo /><span class="rounded-md bg-ink px-1.5 py-0.5 text-xs font-bold text-bg">{t('admin.title')}</span></a>
+	<form method="POST" action="/logout"><button class="text-sm underline">{t('auth.logout')}</button></form>
+</header>
 
 <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 pb-16 md:flex-row">
 	<nav class="flex gap-1 overflow-x-auto md:w-44 md:shrink-0 md:flex-col" aria-label={t('admin.title')}>

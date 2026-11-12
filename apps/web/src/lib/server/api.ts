@@ -53,3 +53,15 @@ export async function apiCall<T>(
 		return { status: 503, data: null, error: { code: 'api_unreachable', message: 'The server is not responding. Please try again.' } };
 	}
 }
+
+/** Public (no sign-in) API read, reading the `{ data, error }` reply. Network failures become an error. */
+export async function apiGet<T>(path: string): Promise<ApiResult<T>> {
+	try {
+		const res = await apiFetch(path);
+		const json = (await res.json()) as { data: T | null; error: ApiError | null; nextCursor?: string | null };
+		return { status: res.status, data: json.data, error: json.error, nextCursor: json.nextCursor };
+	} catch (e) {
+		console.error('API call failed', path, e);
+		return { status: 503, data: null, error: { code: 'api_unreachable', message: 'The server is not responding. Please try again.' } };
+	}
+}
