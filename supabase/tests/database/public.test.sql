@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(21);
 
 insert into public.merchants (id, slug, name, status) values
   ('00000000-0000-0000-0000-0000000000b1', 'scope-cinemas', 'Scope Cinemas', 'active'),
@@ -40,7 +40,7 @@ select is(
 );
 select is(
   (select card -> 'providers' from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
-  '["Hatton National Bank (HNB)"]'::jsonb, 'a card carries the banks whose cards qualify'
+  '[{"slug": "hnb", "name": "Hatton National Bank (HNB)"}]'::jsonb, 'a card carries the banks whose cards qualify'
 );
 select results_eq(
   $$ select card ->> 'slug' from public.public_feed(p_limit => 1) $$,
@@ -103,6 +103,32 @@ select ok(
   not has_function_privilege('anon', 'public.public_feed(text, text, timestamptz, uuid, int)', 'execute')
   and not has_function_privilege('authenticated', 'public.public_deal(text)', 'execute'),
   'apps cannot call the public read functions directly (only the API)'
+);
+
+-- Home page: valid today depends on the weekday; ending soon; counts.
+select results_eq(
+  $$ select jsonb_array_elements(public.public_home(2) -> 'today') ->> 'slug' $$,
+  $$ values ('popcorn-deal'), ('movie-tuesday') $$,
+  'on a Tuesday both deals are valid today (the Tuesday-only deal and the every-day deal)'
+);
+select results_eq(
+  $$ select jsonb_array_elements(public.public_home(3) -> 'today') ->> 'slug' $$,
+  $$ values ('popcorn-deal') $$,
+  'on a Wednesday the Tuesday-only deal is not valid today'
+);
+select is(
+  public.public_home(3) -> 'counts', '{"live": 2, "today": 1, "merchants": 1}'::jsonb,
+  'home counts live deals, deals valid today and merchants with deals'
+);
+select ok(
+  (select count(*) = 0 from jsonb_array_elements(public.public_home(2) -> 'ending')),
+  'nothing ends within 7 days in this data'
+);
+select ok(
+  (select s -> 'deals' @> '[{"slug": "movie-tuesday"}]' and not (s -> 'deals' @> '[{"slug": "draft-deal"}]')
+          and s -> 'merchants' @> '[{"slug": "scope-cinemas"}]' and not (s -> 'merchants' @> '[{"slug": "hidden-shop"}]')
+   from public.public_sitemap() as s),
+  'the sitemap lists public deals and active merchants only'
 );
 
 select * from finish();
