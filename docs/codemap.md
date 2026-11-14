@@ -2,7 +2,7 @@
 
 A living map of the codebase. Update it whenever files or modules are added, moved or removed. Keep each entry to one line.
 
-Status: M5 public web pages (shop-window design) on top of the M4 public API, M3 admin tool, M2 sign-in and M1 database.
+Status: M5 public web pages (owner's reference design) on top of the M4 public API, M3 admin tool, M2 sign-in and M1 database.
 
 ## Structure
 - `apps/web`: SvelteKit app (public pages, user app, `/admin`), deployed as Cloudflare Worker `saveroo-web`
@@ -66,12 +66,12 @@ Status: M5 public web pages (shop-window design) on top of the M4 public API, M3
 - `apps/web/src/lib/components/admin/*`: `DealForm`, `MerchantForm`, `ImageField`, `DealTable`, `StatusBadge`, `Field`
 - `apps/web/src/lib/url.ts`: `withParam` for paging links
 - `apps/web/src/routes/admin/*`: dashboard, `deals` (list, new, `[id]`, `[id]/preview`), `merchants` (list, new, `[id]`), `recheck`, `import`, `audit`, `images` (upload pass-through)
-- `apps/web/src/routes/(site)/*`: public pages (home, search, categories, category, merchant, deal, me, login) and their frame (top bar, footer, bottom bar)
+- `apps/web/src/routes/(site)/*`: public pages (home, search, categories, category, merchant, deal, me, login) and their frame (promo strip and banner on Home, header with category tabs, black stage with the white content panel, footer); `+layout.server.ts` loads the categories for the header and footer
 - `apps/web/src/routes/data/*`: next pages of cards for infinite scroll; `sitemap.xml`, `robots.txt`: for search engines
-- `apps/web/src/lib/components/public/*`: `DealCard`, `DealGrid`, `Rail`, `CategoryNav`, `RooTag`, `WeekStrip`, `CouponTicket`, `CategoryChips`, `Section`, `TopBar`, `BottomNav`, `Logo`, `Icon` (also category icons), `Seo`, `ExternalLink`
+- `apps/web/src/lib/components/public/*`: `DealCard`, `DealGrid`, `Rail`, `StoryCard`, `FeaturedCard`, `BrandCircles`, `HeroCarousel`, `PromoStrip`, `RooTag`, `WeekStrip`, `CouponTicket`, `CategoryChips`, `Section`, `TopBar`, `Logo`, `Icon` (also category icons), `Seo`, `ExternalLink`
 - `apps/web/src/lib/public/cards.ts`: valid today, days left, card frame and badge, image sizes, colour posters; `share.ts`: WhatsApp and share sheet
 - `packages/shared/src/providers.ts`: short bank names; `deal-text.ts` also has `savingTag` (Roo tag text)
-- `apps/web/static/fonts`, `static/og-default.png`: display font (OFL) and default share image
+- `apps/web/static/fonts`, `static/og-default.jpg`: Inter and Montserrat (OFL) and the default share image
 - `docs/design.md`: the design system
 
 ## Data flow notes
