@@ -26,8 +26,10 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} type="image/svg+xml" />
-	<meta name="theme-color" content="#fbf7f1" media="(prefers-color-scheme: light)" />
-	<meta name="theme-color" content="#12100e" media="(prefers-color-scheme: dark)" />
+	<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+	<meta name="theme-color" content="#17181b" media="(prefers-color-scheme: dark)" />
+	<!-- Inter is used for all text: fetch it early so it is ready by first paint. -->
+	<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 </svelte:head>
 
 {@render children()}

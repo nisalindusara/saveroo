@@ -1,54 +1,76 @@
 /*
-	Saveroo design tokens and base styles (see docs/design.md). One styling approach: Tailwind classes
-	that use these tokens, plus a few shared component classes below. Light and dark follow the device.
+	Saveroo design tokens and base styles (see docs/design.md; based on the owner's reference design).
+	One styling approach: Tailwind classes that use these tokens, plus a few shared component classes
+	below. Light and dark follow the device.
 */
 @import 'tailwindcss';
 
+/* Inter for all text, Montserrat for the glowing banner words (both OFL, self-hosted, latin only). */
 @font-face {
-	font-family: 'Bricolage Grotesque';
-	src: url('/fonts/bricolage-grotesque-latin.woff2') format('woff2');
-	font-weight: 500 800;
+	font-family: 'Inter';
+	src: url('/fonts/inter-latin.woff2') format('woff2');
+	font-weight: 400 900;
 	font-display: swap;
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
 }
-/* Metric-matched fallback so text does not jump when the font arrives. */
 @font-face {
-	font-family: 'Bricolage Fallback';
+	font-family: 'Montserrat';
+	src: url('/fonts/montserrat-latin.woff2') format('woff2');
+	font-weight: 300 800;
+	font-display: swap;
+	unicode-range: U+0000-00FF, U+2000-206F;
+}
+/* Metric-matched fallback so text does not jump when Inter arrives. */
+@font-face {
+	font-family: 'Inter Fallback';
 	src: local('Arial');
-	size-adjust: 103%;
-	ascent-override: 92%;
-	descent-override: 26%;
+	size-adjust: 107.4%;
+	ascent-override: 90.2%;
+	descent-override: 22.5%;
+	line-gap-override: 0%;
 }
 
+/* Colours follow the owner's reference design: tan brand, purple for codes, cool greys. */
 :root {
 	--bg: #ffffff;
 	--surface: #ffffff;
-	--surface-2: #f4f2ef;
-	--ink: #17120e;
-	--ink-2: #675d54;
-	--line: rgb(23 18 14 / 0.1);
-	--roo: #ff5a1f;
-	--roo-ink: #c2410c;
-	--roo-soft: #ffe8dc;
+	--surface-2: #f2f4f7;
+	--page: #edeff3;
+	--stage: #000000;
+	--ink: #191c1f;
+	--ink-2: #595d62;
+	--line: rgb(25 28 31 / 0.12);
+	--roo: #a67b5b;
+	--roo-ink: #8c6244;
+	--roo-soft: #f5ebe1;
+	--roo-line: #e2cdb8;
+	/* Filled buttons with white text: a shade darker than the brand tan so text passes AA (5.3:1). */
+	--roo-btn: #8c6244;
+	--roo-btn-hover: #7d5a3c;
+	--promo: #5c2d91;
 	--leaf: #0b7a53;
 	--on-leaf: #ffffff;
 	--leaf-soft: #dcf3e8;
 	--sun: #f5a300;
 	--sun-soft: #fff1c9;
-	--shadow: 0 1px 2px rgb(26 20 16 / 0.06), 0 8px 24px -8px rgb(26 20 16 / 0.18);
+	--shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 6px 18px -8px rgb(0 0 0 / 0.18);
 	color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bg: #12100e;
-		--surface: #1c1916;
-		--surface-2: #27221e;
-		--ink: #f6efe6;
-		--ink-2: #a99e92;
-		--line: rgb(246 239 230 / 0.12);
-		--roo: #ff6a33;
-		--roo-ink: #ff8a5c;
-		--roo-soft: #3b1f13;
+		--bg: #17181b;
+		--surface: #17181b;
+		--surface-2: #24262b;
+		--page: #0d0e10;
+		--stage: #000000;
+		--ink: #eef0f3;
+		--ink-2: #a3a8b0;
+		--line: rgb(238 240 243 / 0.12);
+		--roo: #c89d7c;
+		--roo-ink: #e5c194;
+		--roo-soft: #33271d;
+		--roo-line: #5a4433;
+		--promo: #c9a6f5;
 		--leaf: #3ccf95;
 		--on-leaf: #062014;
 		--leaf-soft: #12291f;
@@ -69,6 +91,11 @@
 	--color-roo: var(--roo);
 	--color-roo-ink: var(--roo-ink);
 	--color-roo-soft: var(--roo-soft);
+	--color-roo-line: var(--roo-line);
+	--color-roo-btn: var(--roo-btn);
+	--color-roo-btn-hover: var(--roo-btn-hover);
+	--color-promo: var(--promo);
+	--color-page: var(--page);
 	--color-leaf: var(--leaf);
 	--color-on-leaf: var(--on-leaf);
 	--color-leaf-soft: var(--leaf-soft);
@@ -79,7 +106,8 @@
 
 /* Static values: also emitted as CSS variables, so component styles can use var(--font-display) etc. */
 @theme static {
-	--font-display: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif;
+	--font-display: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+	--font-neon: 'Montserrat', 'Inter', system-ui, sans-serif;
 	--ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -91,7 +119,7 @@ html {
 	text-rendering: optimizeLegibility;
 }
 body {
-	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+	font-family: 'Inter', 'Inter Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	-webkit-font-smoothing: antialiased;
 }
 :focus-visible {
@@ -114,13 +142,19 @@ body {
 /* Horizontal scroller with snap and no visible scrollbar. */
 .rail {
 	display: flex;
-	gap: 0.75rem;
+	gap: 1.125rem;
 	overflow-x: auto;
 	scroll-snap-type: x mandatory;
 	scroll-padding-inline: 1rem;
 	padding-inline: 1rem;
 	scrollbar-width: none;
 	overscroll-behavior-x: contain;
+}
+@media (min-width: 640px) {
+	.rail {
+		scroll-padding-inline: 1.75rem;
+		padding-inline: 1.75rem;
+	}
 }
 .rail::-webkit-scrollbar {
 	display: none;

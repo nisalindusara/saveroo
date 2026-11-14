@@ -125,10 +125,10 @@
 	}}
 />
 
-<div class="mx-auto max-w-6xl md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-10 md:px-4 md:pt-8">
+<div class="mx-auto max-w-6xl px-4 sm:px-7 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-10 md:pt-3">
 	<!-- Poster -->
-	<div class="relative md:sticky md:top-20 md:self-start">
-		<div class="hero relative overflow-hidden md:rounded-[2rem]">
+	<div class="relative md:sticky md:top-32 md:self-start">
+		<div class="hero relative overflow-hidden rounded-2xl">
 			{#if deal.imageKey}
 				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" aria-hidden="true" class="backdrop" />
 			{:else}
@@ -179,7 +179,7 @@
 	</div>
 
 	<!-- Ticket sheet -->
-	<article class="sheet relative -mt-7 rounded-t-[1.9rem] bg-surface px-5 pt-6 pb-32 md:mt-0 md:rounded-[2rem] md:p-8 md:shadow-card">
+	<article class="sheet relative pt-6 pb-28 md:pt-0 md:pb-4">
 		<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="press inline-flex items-center gap-2 text-sm font-semibold text-ink-2">
 			{#if deal.merchant.logoKey}
 				<img src={imageUrl(data.supabaseUrl, deal.merchant.logoKey, 320)} alt="" width="28" height="28" class="size-7 rounded-full object-cover ring-1 ring-line" />
@@ -199,13 +199,27 @@
 			{/if}
 		</p>
 
-		<div class="value-box mt-5">
-			<p class="flex flex-wrap items-baseline gap-x-2">
-				{#if value.was}<s class="text-lg text-ink-2">{value.was}</s>{/if}
-				<span class="font-display text-[2.1rem] leading-none font-extrabold tracking-[-0.03em] text-roo-ink">{value.main}</span>
-				{#if value.pill}<span class="self-center rounded-md bg-leaf-soft px-2 py-0.5 text-sm font-extrabold text-leaf">{value.pill}</span>{/if}
-			</p>
-			{#if conditions.length}<p class="mt-1.5 text-[0.9rem] font-medium text-ink-2">{conditions.join(' · ')}</p>{/if}
+		<div class="value-box mt-5 flex flex-wrap items-center justify-between gap-4">
+			<div class="min-w-0">
+				<p class="flex flex-wrap items-baseline gap-x-2">
+					{#if value.was}<s class="text-base text-[#888d93]">{value.was}</s>{/if}
+					<span class="text-[1.9rem] leading-none font-black tracking-[-0.03em] text-roo-ink">{value.main}</span>
+					{#if value.pill}<span class="self-center rounded bg-roo-soft px-2 py-0.5 text-xs font-bold text-roo-ink">{value.pill}</span>{/if}
+				</p>
+				{#if conditions.length}<p class="mt-1.5 text-[0.88rem] font-medium text-ink-2">{conditions.join(' · ')}</p>{/if}
+				{#if deal.couponCode}<p class="mt-1 text-[0.85rem] font-semibold text-promo">{t('pub.card.use_code')} <span class="text-base font-extrabold">{deal.couponCode}</span></p>{/if}
+			</div>
+			<div class="hidden md:block">{@render mainAction()}</div>
+		</div>
+		<div class="mt-3 hidden gap-2 md:flex">
+			{#if action}
+				<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2">
+					<Icon name="whatsapp" size={17} stroke={2} class="text-[#0f7f43]" />{t('pub.deal.share_whatsapp')}
+				</ExternalLink>
+			{/if}
+			<button class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2" onclick={share}>
+				<Icon name="share" size={16} stroke={2.2} />{t('pub.deal.share')}
+			</button>
 		</div>
 
 		<!-- When -->
@@ -329,37 +343,43 @@
 {#await data.more then more}
 {#if more.length}
 	<section class="mx-auto mt-2 max-w-6xl md:mt-10">
-		<h2 class="font-display px-4 text-[1.35rem] font-extrabold tracking-tight">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
+		<h2 class="px-4 text-[1.375rem] font-extrabold tracking-[-0.02em] sm:px-7 sm:text-2xl">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
 		<div class="mt-3">
 			<Rail>
-				{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="15rem" />{/each}
+				{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="17rem" />{/each}
 			</Rail>
 		</div>
 	</section>
 {/if}
 {/await}
 
-<!-- Action bar: the main action plus WhatsApp share (WhatsApp is the main action when there is none). -->
-<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:inset-x-auto md:right-6 md:bottom-6 md:rounded-2xl md:border md:p-2 md:shadow-card" style:view-transition-name="share-bar">
+{#snippet mainAction()}
+	{#if action?.kind === 'copy'}
+		<button class="press flex flex-1 items-center justify-center gap-2 rounded-full bg-roo-btn px-5 py-3 text-sm font-bold whitespace-nowrap text-white hover:bg-roo-btn-hover" onclick={() => copyCode(action.code)} aria-live="polite">
+			<Icon name={copied ? 'check' : 'copy'} size={17} stroke={2.4} />{copied ? t('pub.deal.copied') : t('pub.deal.copy_code_short', { code: action.code })}
+		</button>
+	{:else if action}
+		<ExternalLink href={action.href} class="press flex flex-1 items-center justify-center gap-2 rounded-full bg-roo-btn px-5 py-3 text-sm font-bold whitespace-nowrap text-white hover:bg-roo-btn-hover">
+			<Icon name={action.icon} size={17} stroke={2.4} />{action.label}
+		</ExternalLink>
+	{:else}
+		<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-full bg-[#0f7f43] px-5 py-3 text-sm font-bold whitespace-nowrap text-white">
+			<Icon name="whatsapp" size={18} stroke={2} />{t('pub.deal.share_whatsapp')}
+		</ExternalLink>
+	{/if}
+{/snippet}
+
+<!-- Action bar on phones: the main action plus WhatsApp and share (wider screens have them on the page). -->
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden" style:view-transition-name="share-bar">
 	<div class="mx-auto flex max-w-md gap-2">
-		{#if action?.kind === 'copy'}
-			<button class="press flex flex-1 items-center justify-center gap-2 rounded-xl bg-roo px-4 py-3.5 font-bold text-white" onclick={() => copyCode(action.code)} aria-live="polite">
-				<Icon name={copied ? 'check' : 'copy'} size={19} stroke={2.4} />{copied ? t('pub.deal.copied') : t('pub.deal.copy_code_short', { code: action.code })}
-			</button>
-		{:else if action}
-			<ExternalLink href={action.href} class="press flex flex-1 items-center justify-center gap-2 rounded-xl bg-roo px-4 py-3.5 font-bold text-white">
-				<Icon name={action.icon} size={19} stroke={2.4} />{action.label}
+		{@render mainAction()}
+		{#if action}
+			<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press grid w-12 shrink-0 place-items-center rounded-full bg-[#0f7f43] text-white" label={t('pub.deal.share_whatsapp')}>
+				<Icon name="whatsapp" size={20} stroke={2} />
 			</ExternalLink>
 		{/if}
-		<ExternalLink
-			href={whatsappUrl(shareText, page.url.href)}
-			class="press flex items-center justify-center gap-2 rounded-xl bg-[#0f7f43] px-4 py-3.5 font-bold text-white {action ? 'w-14 shrink-0 !px-0' : 'flex-1'}"
-			label={action ? t('pub.deal.share_whatsapp') : undefined}
-		>
-			<Icon name="whatsapp" size={20} stroke={2} />{#if !action}{t('pub.deal.share_whatsapp')}{/if}
-		</ExternalLink>
-		<button class="press grid w-14 shrink-0 place-items-center rounded-xl border border-line bg-surface" onclick={share} aria-label={t('pub.deal.share')}>
-			<Icon name="share" size={20} stroke={2.2} />
+		<button class="press grid w-12 shrink-0 place-items-center rounded-full border border-line bg-surface" onclick={share} aria-label={t('pub.deal.share')}>
+			<Icon name="share" size={19} stroke={2.2} />
 		</button>
 	</div>
 </div>
@@ -419,10 +439,12 @@
 	.sheet {
 		z-index: 2;
 	}
+	/* Price box as in the reference design's quick view. */
 	.value-box {
-		padding: 1rem 1.1rem;
-		border-radius: 1.2rem;
-		background: var(--roo-soft);
+		padding: 0.9rem 1rem;
+		border-radius: 0.75rem;
+		background: color-mix(in srgb, var(--roo-soft) 55%, var(--bg));
+		border: 1px solid var(--roo-line);
 	}
 	/* The Roo tag stuck on the poster's lower-left corner. */
 	.sticker {

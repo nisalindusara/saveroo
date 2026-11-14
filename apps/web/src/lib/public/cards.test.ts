@@ -31,10 +31,11 @@ describe('posterRatio', () => {
 });
 
 describe('fillsFrame', () => {
-	it('fills the 4:3 frame only with near-4:3 images', () => {
-		expect(fillsFrame({ imageRatio: 1.33 })).toBe(true);
+	it('fills the 16:10 frame only with near-16:10 images', () => {
+		expect(fillsFrame({ imageRatio: 1.6 })).toBe(true);
+		expect(fillsFrame({ imageRatio: 1.78 })).toBe(true);
 		expect(fillsFrame({ imageRatio: 0.8 })).toBe(false);
-		expect(fillsFrame({ imageRatio: 1.78 })).toBe(false);
+		expect(fillsFrame({ imageRatio: 1.33 })).toBe(false);
 		expect(fillsFrame({ imageRatio: null })).toBe(false);
 	});
 });

@@ -27,7 +27,7 @@
 
 	const fullTitle = $derived(title === t('app.name') ? `${title} · ${t('pub.seo.tagline')}` : `${title} · ${t('app.name')}`);
 	const canonical = $derived(`${page.url.origin}${page.url.pathname}`);
-	const shareImage = $derived(image ?? `${page.url.origin}/og-default.png`);
+	const shareImage = $derived(image ?? `${page.url.origin}/og-default.jpg`);
 	const ld = $derived(jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</` + 'script>' : '');
 </script>
 

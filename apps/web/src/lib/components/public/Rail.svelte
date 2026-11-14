@@ -8,7 +8,14 @@
 	import { t } from '@saveroo/shared/i18n';
 	import Icon from './Icon.svelte';
 
-	let { children }: { children: Snippet } = $props();
+	let {
+		arrowTop = '5.3rem',
+		children
+	}: {
+		/** Where the arrows sit: the middle of the cards' image. */
+		arrowTop?: string;
+		children: Snippet;
+	} = $props();
 	let el = $state<HTMLElement>();
 	let atStart = $state(true);
 	let atEnd = $state(true);
@@ -24,33 +31,32 @@
 	onMount(update);
 </script>
 
-<div class="relative mx-auto max-w-7xl">
-	<div bind:this={el} class="rail pb-2" onscroll={update}>
+<div class="relative" style:--arrow-top={arrowTop}>
+	<div bind:this={el} class="rail pb-1" onscroll={update}>
 		{@render children()}
 	</div>
 	{#if !atStart}
-		<button class="arrow press left-1" onclick={() => go(-1)} aria-label={t('pub.rail.back')}><Icon name="back" size={20} stroke={2.4} /></button>
+		<button class="arrow press left-2.5" onclick={() => go(-1)} aria-label={t('pub.rail.back')}><Icon name="back" size={20} stroke={2.4} /></button>
 	{/if}
 	{#if !atEnd}
-		<button class="arrow press right-1" onclick={() => go(1)} aria-label={t('pub.rail.forward')}><Icon name="chevron" size={22} stroke={2.4} /></button>
+		<button class="arrow press right-2.5" onclick={() => go(1)} aria-label={t('pub.rail.forward')}><Icon name="chevron" size={22} stroke={2.4} /></button>
 	{/if}
 </div>
 
 <style>
 	.arrow {
 		position: absolute;
-		/* Middle of a 15rem-wide card's 4:3 image. */
-		top: 5.6rem;
+		top: var(--arrow-top);
 		translate: 0 -50%;
 		display: none;
 		place-items: center;
-		width: 2.75rem;
-		height: 2.75rem;
+		width: 2.5rem;
+		height: 2.5rem;
 		border-radius: 50%;
 		background: var(--surface);
 		color: var(--ink);
 		border: 1px solid var(--line);
-		box-shadow: var(--shadow);
+		box-shadow: 0 4px 14px rgb(0 0 0 / 0.18);
 	}
 	@media (min-width: 768px) {
 		.arrow {

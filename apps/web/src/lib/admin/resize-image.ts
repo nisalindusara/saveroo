@@ -91,11 +91,11 @@ async function sharePreview(bitmap: ImageBitmap): Promise<Blob> {
 	ctx.drawImage(bitmap, x, y, w, h);
 	ctx.restore();
 
-	// "saveroo" label, bottom right.
-	ctx.font = '700 26px system-ui, -apple-system, "Segoe UI", sans-serif';
-	const label = 'saveroo';
+	// "SAVEROO" label, bottom right.
+	ctx.font = '900 26px system-ui, -apple-system, "Segoe UI", sans-serif';
+	const label = 'SAVEROO';
 	const labelWidth = ctx.measureText(label).width + 36;
-	ctx.fillStyle = '#ff5a1f';
+	ctx.fillStyle = '#a67b5b';
 	ctx.beginPath();
 	ctx.roundRect(SHARE_WIDTH - labelWidth - 24, SHARE_HEIGHT - 70, labelWidth, 46, 23);
 	ctx.fill();

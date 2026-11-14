@@ -1,5 +1,5 @@
 <!--
-	Deal grid: cards in even rows (1 column on phones, 2, 3, then 4 on wide screens), like a shop window.
+	Deal grid: cards in even rows (1 column on phones, 2 from 640 px, 3 from 1024 px), as in the reference design.
 	Loads the next page when the end comes into view (or with the button), appending only.
 	Used on Home, category, merchant and search pages.
 -->
@@ -62,7 +62,7 @@
 	});
 </script>
 
-<div class="grid grid-cols-1 gap-x-4 gap-y-7 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-4">
+<div class="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
 	{#each all as deal, i (deal.id)}
 		<DealCard {deal} {today} {supabaseUrl} index={i % 12} priority={i < priority} />
 	{/each}
@@ -70,10 +70,17 @@
 
 {#if cursor && moreUrl}
 	<div bind:this={sentinel} class="flex justify-center py-8">
-		<button class="press rounded-full border border-line bg-surface px-6 py-2.5 text-sm font-semibold" onclick={loadMore} disabled={loading}>
+		<button class="more press w-[16.25rem] rounded-full border border-line py-2 text-xs font-semibold text-ink" onclick={loadMore} disabled={loading}>
 			{loading ? t('pub.loading') : failed ? t('pub.retry') : t('pub.more')}
 		</button>
 	</div>
 {:else if all.length > 8}
 	<p class="py-10 text-center text-sm text-ink-2">{t('pub.end_of_list')}</p>
 {/if}
+
+<style>
+	.more:hover {
+		border-color: var(--roo);
+		background: var(--roo-soft);
+	}
+</style>

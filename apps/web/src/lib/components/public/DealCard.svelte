@@ -1,9 +1,9 @@
 <!--
-	Deal card for grids and rails, built so the saving is clear without opening it: the poster in a fixed
-	4:3 frame (shown whole on a blurred copy when it does not fit), one badge (last days / works today /
-	popular), shop, title, where it works, the value line ("40% off · up to Rs 5,000", or a crossed-out
-	price), and which cards or code to use with the week strip. The image shares a view-transition name
-	with the deal page poster, so it glides into place when opened.
+	Deal card for grids and rows (owner's reference design): the image in a 16:10 frame (posters that do
+	not fit are shown whole on a blurred copy, never cropped) with one white badge; shop; bold title;
+	where it works with the week strip; which cards; the tan value line (crossed-out price and a % pill
+	when there is one); and a purple "Use code" line when the deal has a coupon. The image shares a
+	view-transition name with the deal page poster, so it glides into place when opened.
 -->
 <script lang="ts">
 	import { resolve } from '$app/paths';
@@ -30,7 +30,7 @@
 		index?: number;
 		/** Load the image right away (first cards on screen). */
 		priority?: boolean;
-		/** Fixed width in rails (e.g. "15rem"); fills its grid cell when not set. */
+		/** Fixed width in rows (e.g. "17rem"); fills its grid cell when not set. */
 		width?: string;
 	} = $props();
 
@@ -43,12 +43,12 @@
 
 <a
 	href={resolve('/(site)/deals/[slug]', { slug: deal.slug })}
-	class="card press rise group flex flex-col"
+	class="card rise group flex flex-col"
 	style:--i={Math.min(index, 10)}
 	style:width
 	data-sveltekit-preload-data="hover"
 >
-	<div class="frame relative overflow-hidden rounded-2xl bg-surface-2" style:aspect-ratio={CARD_FRAME} style:view-transition-name="deal-{deal.id}">
+	<div class="frame relative mb-3 overflow-hidden rounded-xl border border-line bg-surface-2" style:aspect-ratio={CARD_FRAME} style:view-transition-name="deal-{deal.id}">
 		{#if deal.imageKey}
 			{#if !fill}
 				<img src={imageUrl(supabaseUrl, deal.imageKey, 320)} alt="" aria-hidden="true" loading={priority ? 'eager' : 'lazy'} decoding="async" class="backdrop" />
@@ -65,82 +65,74 @@
 			/>
 		{:else}
 			<div class="flex h-full flex-col justify-end gap-1 p-4" style:background={colours.bg} style:color={colours.fg}>
-				<span class="text-[0.7rem] font-bold tracking-[0.14em] uppercase opacity-80">{deal.merchant.name}</span>
-				<span class="font-display text-[1.7rem] leading-none font-extrabold tracking-tight">{value.main}</span>
+				<span class="text-[0.7rem] font-bold tracking-[0.14em] uppercase">{deal.merchant.name}</span>
+				<span class="text-[1.7rem] leading-none font-black tracking-tight">{value.main}</span>
 				<span class="ring" aria-hidden="true"></span>
 			</div>
 		{/if}
 
 		{#if badge}
-			<span
-				class="badge absolute top-2.5 left-2.5 {badge.kind === 'ending' ? 'bg-sun text-ink' : badge.kind === 'today' ? 'bg-leaf text-on-leaf' : 'bg-roo text-white'}"
-			>
+			<span class="badge absolute top-3 left-3 z-10">
 				{#if badge.kind === 'ending'}
-					<Icon name="flame" size={12} stroke={2.4} />{badge.days === 0 ? t('pub.card.last_day') : badge.days === 1 ? t('pub.card.ends_tomorrow') : t('pub.card.ends_in', { days: badge.days })}
+					<Icon name="flame" size={14} stroke={2.3} class="text-[#d97706]" />{badge.days === 0 ? t('pub.card.last_day') : badge.days === 1 ? t('pub.card.ends_tomorrow') : t('pub.card.ends_in', { days: badge.days })}
 				{:else if badge.kind === 'today'}
-					<Icon name="check" size={12} stroke={3} />{t('pub.card.works_today')}
+					<Icon name="check" size={14} stroke={2.8} class="text-[#0b7a53]" />{t('pub.card.works_today')}
 				{:else}
-					<Icon name="sparkle" size={12} stroke={2.4} />{t('pub.card.popular')}
+					<Icon name="sparkle" size={14} stroke={2.3} class="text-[#d91b81]" />{t('pub.card.popular')}
 				{/if}
 			</span>
 		{/if}
 	</div>
 
-	<div class="flex flex-1 flex-col px-0.5 pt-2.5">
-		<p class="flex items-center gap-1.5 text-[0.78rem] text-ink-2">
-			{#if deal.merchant.logoKey}
-				<img src={imageUrl(supabaseUrl, deal.merchant.logoKey, 320)} alt="" width="16" height="16" loading="lazy" class="size-4 rounded-full object-cover ring-1 ring-line" />
-			{/if}
-			<span class="truncate">{deal.merchant.name}</span>
-		</p>
-		<h3 class="mt-0.5 line-clamp-2 text-[0.95rem] leading-snug font-bold text-ink">{deal.title}</h3>
-		<p class="mt-1 flex items-center gap-1 text-[0.78rem] text-ink-2">
+	<p class="truncate text-[0.84rem] text-ink-2">{deal.merchant.name}</p>
+	<h3 class="mt-0.5 line-clamp-2 text-base leading-[1.34] font-bold text-ink transition-colors group-hover:text-roo-ink">{deal.title}</h3>
+
+	<div class="mt-1 flex items-center justify-between gap-2 text-[0.84rem] text-ink-2">
+		<span class="min-w-0 truncate">
 			{#if deal.place}
-				<Icon name="pin" size={13} stroke={2.2} />
-				<span class="truncate">{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}</span>
+				{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}
 			{:else}
-				<Icon name="globe" size={13} stroke={2.2} /><span>{t('pub.card.online')}</span>
+				{t('pub.card.online')}
 			{/if}
-		</p>
-
-		<p class="value mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-2">
-			{#if value.was}<s class="text-[0.82rem] text-ink-2">{value.was}</s>{/if}
-			<span class="font-display text-[1.2rem] leading-tight font-extrabold tracking-tight text-roo-ink">{value.main}</span>
-			{#if value.pill}<span class="pill">{value.pill}</span>{/if}
-			{#if value.note}<span class="text-[0.78rem] text-ink-2">{value.note}</span>{/if}
-		</p>
-
-		<div class="mt-1 flex items-center justify-between gap-2 text-[0.78rem]">
-			<span class="min-w-0 truncate">
-				{#if deal.providers.length}
-					<span class="text-ink-2">{t('pub.card.pay_with')}</span> <span class="font-semibold text-ink">{banks}</span>
-				{:else}
-					<span class="font-semibold text-leaf">{t('pub.any_card')}</span>
-				{/if}
-				{#if deal.couponCode}
-					<span class="text-ink-2"> · {t('pub.card.code')}</span> <span class="code">{deal.couponCode}</span>
-				{/if}
-			</span>
-			<WeekStrip days={deal.validDays} {today} />
-		</div>
+		</span>
+		<WeekStrip days={deal.validDays} {today} />
 	</div>
+
+	<p class="mt-1 flex items-center gap-1.5 text-[0.84rem]">
+		<Icon name="card" size={15} stroke={1.9} class="text-ink-2" />
+		{#if deal.providers.length}
+			<span class="truncate"><span class="text-ink-2">{t('pub.card.pay_with')}</span> <span class="font-semibold">{banks}</span></span>
+		{:else}
+			<span class="font-semibold text-leaf">{t('pub.any_card')}</span>
+		{/if}
+	</p>
+
+	<p class="mt-1.5 flex flex-wrap items-baseline gap-x-1.5">
+		{#if value.was}<s class="text-[0.875rem] text-[#888d93]">{value.was}</s>{/if}
+		<span class="text-[1.02rem] font-extrabold text-roo-ink">{value.main}</span>
+		{#if value.pill}<span class="rounded bg-roo-soft px-1.5 py-0.5 text-[0.75rem] font-extrabold text-roo-ink">{value.pill}</span>{/if}
+		{#if value.note}<span class="text-[0.8rem] text-ink-2">{value.note}</span>{/if}
+	</p>
+	{#if deal.couponCode}
+		<p class="mt-0.5 flex items-baseline gap-1.5 text-promo">
+			<span class="text-[0.8rem] font-semibold">{t('pub.card.use_code')}</span>
+			<span class="text-[1.15rem] font-extrabold tracking-tight">{deal.couponCode}</span>
+		</p>
+	{/if}
 </a>
 
 <style>
 	/* Cards far below the screen are not laid out or painted until the person scrolls near them. */
 	.card {
 		content-visibility: auto;
-		contain-intrinsic-size: auto 24rem;
+		contain-intrinsic-size: auto 22rem;
+		transition: transform 180ms ease;
 	}
-	.frame {
-		box-shadow: 0 0 0 1px var(--line);
-		transition: box-shadow 300ms var(--ease-out-expo);
-	}
-	.card:hover .frame {
-		box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgb(26 20 16 / 0.35);
+	.card:hover {
+		transform: translateY(-2px);
 	}
 	.poster {
-		transition: transform 500ms var(--ease-out-expo);
+		transition: transform 300ms ease;
 	}
 	.card:hover .poster {
 		transform: scale(1.03);
@@ -157,29 +149,14 @@
 	.badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.25rem;
-		padding: 0.2rem 0.5rem;
-		border-radius: 0.5rem;
-		font-size: 0.7rem;
-		font-weight: 800;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
-	}
-	.pill {
-		align-self: center;
-		padding: 0.05rem 0.35rem;
-		border-radius: 0.35rem;
-		background: var(--leaf-soft);
-		color: var(--leaf);
-		font-size: 0.72rem;
-		font-weight: 800;
-	}
-	.code {
-		padding: 0 0.3rem;
-		border: 1px dashed currentColor;
-		border-radius: 0.3rem;
-		color: var(--roo-ink);
-		font-family: ui-monospace, monospace;
+		gap: 0.375rem;
+		padding: 0.25rem 0.625rem;
+		border-radius: 0.375rem;
+		background: #fff;
+		color: #23262a;
+		font-size: 0.75rem;
 		font-weight: 700;
+		box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
 	}
 	.ring {
 		position: absolute;
