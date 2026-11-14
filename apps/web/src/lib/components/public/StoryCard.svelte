@@ -21,7 +21,7 @@
 
 <a
 	href={resolve('/(site)/deals/[slug]', { slug: deal.slug })}
-	class="story rise group relative block h-[16.5rem] w-[17rem] overflow-hidden rounded-2xl"
+	class="story rise group relative block h-[265px] w-[274px] shrink-0 overflow-hidden rounded-2xl"
 	style:--i={Math.min(index, 10)}
 	style:background={colours.bg}
 >
@@ -30,10 +30,9 @@
 	{/if}
 	<div class="shade absolute inset-0"></div>
 	<div class="absolute inset-x-0 bottom-0 z-10 p-4 text-white">
-		<p class="text-[0.75rem] font-semibold text-white/80">{deal.merchant.name}</p>
-		<h3 class="line-clamp-2 text-[1.15rem] leading-[1.2] font-extrabold tracking-[-0.01em]">{deal.title}</h3>
-		<p class="mt-1.5 flex items-start gap-2 text-[0.84rem] leading-[1.35]">
-			<span aria-hidden="true">→</span>
+		<h3 class="line-clamp-2 text-[18.5px] leading-[1.2] font-extrabold tracking-[-0.01em]">{deal.title}</h3>
+		<p class="mt-1.5 flex items-start gap-2 text-[13.5px] leading-[1.35]">
+			<span class="mt-0.5 shrink-0 font-normal text-white/95" aria-hidden="true">→</span>
 			<span class="font-bold underline decoration-white/90 underline-offset-2 transition-colors group-hover:text-[#e5c194]">
 				{[urgency, cardValue(deal).main].filter(Boolean).join(' · ')}
 			</span>

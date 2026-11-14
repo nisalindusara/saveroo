@@ -39,6 +39,8 @@
 	--stage: #000000;
 	--ink: #191c1f;
 	--ink-2: #595d62;
+	--ink-3: #6b7280;
+	--ink-strong: #23262a;
 	--line: rgb(25 28 31 / 0.12);
 	--roo: #a67b5b;
 	--roo-ink: #8c6244;
@@ -65,6 +67,8 @@
 		--stage: #000000;
 		--ink: #eef0f3;
 		--ink-2: #a3a8b0;
+		--ink-3: #9aa0a8;
+		--ink-strong: #eef0f3;
 		--line: rgb(238 240 243 / 0.12);
 		--roo: #c89d7c;
 		--roo-ink: #e5c194;
@@ -87,6 +91,7 @@
 	--color-surface-2: var(--surface-2);
 	--color-ink: var(--ink);
 	--color-ink-2: var(--ink-2);
+	--color-ink-3: var(--ink-3);
 	--color-line: var(--line);
 	--color-roo: var(--roo);
 	--color-roo-ink: var(--roo-ink);

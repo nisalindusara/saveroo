@@ -40,7 +40,7 @@
 	</a>
 {/snippet}
 
-<div class="rail items-center !gap-1 py-0.5">
+<div class="track flex items-center gap-1 overflow-x-auto py-0.5">
 	{#each groups as g, i (i)}
 		{#if g.big}{@render circle(g.big, true)}{/if}
 		{#if g.small.length}
@@ -52,6 +52,17 @@
 </div>
 
 <style>
+	.track {
+		scrollbar-width: none;
+	}
+	.track::-webkit-scrollbar {
+		display: none;
+	}
+	@media (min-width: 1100px) {
+		.track {
+			justify-content: center;
+		}
+	}
 	.bubble {
 		border: 2px solid #fff;
 		transition:
@@ -63,14 +74,16 @@
 		transform: scale(1.03);
 	}
 	.big {
-		width: 8.75rem;
-		height: 8.75rem;
+		width: 140px;
+		height: 140px;
 		padding: 0.75rem;
 	}
 	.small {
-		width: 4.25rem;
-		height: 4.25rem;
+		width: 68px;
+		height: 68px;
 		padding: 0.35rem;
+		border-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.name {
 		line-height: 1.05;

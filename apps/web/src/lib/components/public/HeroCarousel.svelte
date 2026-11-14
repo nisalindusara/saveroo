@@ -10,12 +10,28 @@
 	import { cardValue } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
 	import { imageUrl } from '@saveroo/shared/images';
+	import { formatColomboDate } from '@saveroo/shared/time';
 	import type { PublicHome } from '@saveroo/shared';
 	import Icon from './Icon.svelte';
 
 	let { home, dayName, supabaseUrl }: { home: PublicHome; dayName: string; supabaseUrl: string } = $props();
 
-	type Slide = { top: string; bottom: string; tag: string; copy: string; strong: string; button: string; href: string; image: string | null };
+	type Slide = {
+		top: string;
+		bottom: string;
+		tag: string;
+		copy: string;
+		strong: string;
+		button: string;
+		href: string;
+		image: string | null;
+		/** "USE CODE:" before the button (code slides). */
+		code?: boolean;
+		/** Glass box on the right (wide screens): shop, saving, a small line. */
+		box?: { top: string; middle: string; bottom: string };
+		/** Small line at the bottom left. */
+		legal: string;
+	};
 
 	const slides = $derived.by(() => {
 		const list: Slide[] = [];
@@ -29,7 +45,8 @@
 				strong: best ? t('pub.hero.up_to', { percent: best }) : '',
 				button: t('pub.hero.see_them'),
 				href: '#today',
-				image: home.today.find((d) => d.imageKey)?.imageKey ?? null
+				image: home.today.find((d) => d.imageKey)?.imageKey ?? null,
+				legal: t('pub.hero.legal_today')
 			});
 		}
 		if (home.ending.length) {
@@ -41,7 +58,9 @@
 				strong: '',
 				button: t('pub.hero.see_them'),
 				href: '#ending',
-				image: home.ending.find((d) => d.imageKey)?.imageKey ?? null
+				image: home.ending.find((d) => d.imageKey)?.imageKey ?? null,
+				box: home.ending[0] ? { top: home.ending[0].merchant.name, middle: cardValue(home.ending[0]).main, bottom: home.ending[0].endsAt ? t('pub.hero.ends_on', { date: formatColomboDate(home.ending[0].endsAt) }) : '' } : undefined,
+				legal: t('pub.hero.legal_ending')
 			});
 		}
 		const coded = [...home.today, ...home.ending, ...home.latest].find((d) => d.couponCode);
@@ -54,7 +73,10 @@
 				strong: cardValue(coded).main,
 				button: coded.couponCode!,
 				href: resolve('/(site)/deals/[slug]', { slug: coded.slug }),
-				image: coded.imageKey
+				image: coded.imageKey,
+				code: true,
+				box: { top: coded.merchant.name, middle: cardValue(coded).main, bottom: coded.place ? coded.place.city : t('pub.card.online') },
+				legal: coded.endsAt ? t('pub.hero.legal_code', { date: formatColomboDate(coded.endsAt) }) : t('pub.hero.legal_today')
 			});
 		}
 		return list;
@@ -86,14 +108,15 @@
 		>
 			<div class="track flex" style:transform="translateX(-{index * 100}%)">
 				{#each slides as s, i (i)}
-					<div class="relative flex min-h-[132px] w-full shrink-0 items-center overflow-hidden" aria-hidden={i !== index} inert={i !== index}>
+					<div class="relative flex min-h-[126px] w-full shrink-0 items-center overflow-hidden sm:h-[132px]" aria-hidden={i !== index} inert={i !== index}>
 						{#if s.image && showImages}
 							<div class="absolute inset-y-0 right-0 w-full overflow-hidden md:w-[58%]">
 								<img src={imageUrl(supabaseUrl, s.image, 320)} alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" class="bg-img h-full w-full object-cover" />
 								<div class="fade absolute inset-0"></div>
 							</div>
 						{/if}
-						<div class="relative z-10 flex w-full flex-wrap items-center gap-x-9 gap-y-2 px-5 pt-4 pb-7 sm:flex-nowrap sm:py-4 sm:pr-12 sm:pl-16">
+						<div class="relative z-10 flex w-full items-center justify-between px-5 pt-4 pb-7 sm:py-0 sm:pr-16 sm:pl-16">
+							<div class="flex flex-wrap items-center gap-x-9 gap-y-2 sm:flex-nowrap lg:gap-x-12">
 							<div class="shrink-0 leading-none">
 								<div class="neon-top text-[1.35rem] sm:text-[1.7rem] lg:text-[1.9rem]">{s.top}</div>
 								<div class="neon-bottom mt-0.5 text-[1.35rem] sm:text-[1.7rem] lg:text-[1.9rem]">{s.bottom}</div>
@@ -103,13 +126,25 @@
 								<div class="min-w-0">
 									<span class="tag mb-1 inline-block rounded-full px-2 py-0.5 text-[0.62rem] font-bold tracking-[0.15em] uppercase">{s.tag}</span>
 									<p class="line-clamp-2 text-[0.88rem] leading-tight font-semibold text-white sm:text-base">
-										{s.copy}{#if s.strong} — <span class="font-extrabold text-[#ebd5b3]">{s.strong}</span>{/if}
+										{s.copy}{#if s.strong}&nbsp;— <span class="font-extrabold text-[#ebd5b3]">{s.strong}</span>{/if}
 									</p>
 								</div>
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- in-page anchors or resolved deal paths -->
-								<a href={s.href} class="pill press self-start rounded-full px-4 py-1.5 text-[0.82rem] font-extrabold whitespace-nowrap text-white sm:self-auto">{s.button}</a>
+								<div class="flex shrink-0 items-center gap-2.5">
+									{#if s.code}<span class="hidden text-[11.5px] font-semibold tracking-[0.08em] text-white/80 uppercase lg:inline">{t('pub.hero.use_code_label')}</span>{/if}
+									<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- in-page anchors or resolved deal paths -->
+									<a href={s.href} class="pill press rounded-full px-4 py-1.5 text-[13px] font-extrabold whitespace-nowrap text-white">{s.button}</a>
+								</div>
 							</div>
+							</div>
+							{#if s.box}
+								<div class="glass hidden shrink-0 flex-col items-end rounded-xl px-4 py-2 text-right xl:flex">
+									<span class="text-[11px] font-semibold tracking-wider text-[#ebd5b3] uppercase">{s.box.top}</span>
+									<span class="mt-0.5 text-[13px] font-bold text-white">{s.box.middle}</span>
+									<span class="text-[9.5px] text-white/60">{s.box.bottom}</span>
+								</div>
+							{/if}
 						</div>
+						<div class="absolute bottom-1.5 left-16 z-20 hidden text-[9px] tracking-tight text-white/45 sm:block">{s.legal}</div>
 					</div>
 				{/each}
 			</div>
@@ -198,6 +233,11 @@
 			0 0 6px rgb(229 193 148 / 0.9),
 			0 0 18px rgb(198 151 105 / 0.75),
 			0 0 32px rgb(166 123 91 / 0.6);
+	}
+	.glass {
+		background: rgb(0 0 0 / 0.55);
+		border: 1px solid rgb(255 255 255 / 0.15);
+		backdrop-filter: blur(12px);
 	}
 	.divider {
 		background: linear-gradient(to bottom, transparent, rgb(200 157 124 / 0.5), transparent);

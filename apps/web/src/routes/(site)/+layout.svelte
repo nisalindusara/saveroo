@@ -10,7 +10,6 @@
 	import type { PublicHome } from '@saveroo/shared';
 	import HeroCarousel from '#lib/components/public/HeroCarousel.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
-	import Logo from '#lib/components/public/Logo.svelte';
 	import PromoStrip from '#lib/components/public/PromoStrip.svelte';
 	import TopBar from '#lib/components/public/TopBar.svelte';
 	import type { LayoutProps } from './$types';
@@ -40,11 +39,11 @@
 	<details class="group mx-auto max-w-[1280px]">
 		<summary class="flex cursor-pointer list-none flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
 			<span>
-				<span class="block text-base font-extrabold">{t('pub.footer.by_category')}</span>
-				<span class="mt-0.5 block text-xs text-ink-2">{t('pub.footer.by_category_sub')}</span>
+				<span class="block text-[16px] font-extrabold">{t('pub.footer.by_category')}</span>
+				<span class="mt-0.5 block text-[12px] text-ink-3">{t('pub.footer.by_category_sub')}</span>
 			</span>
-			<span class="flex items-center gap-2 rounded-full border border-line px-4 py-1.5 text-xs font-semibold">
-				{t('pub.footer.more_categories')}<Icon name="chevron" size={14} stroke={2} class="rotate-90 transition-transform group-open:-rotate-90" />
+			<span class="flex items-center gap-2 rounded-full border border-line px-4 py-1.5 text-xs font-semibold text-ink-2 hover:bg-surface-2">
+				{t('pub.footer.more_categories')}<Icon name="chevronDown" size={14} stroke={2} class="text-ink-3 transition-transform group-open:rotate-180" />
 			</span>
 		</summary>
 		<div class="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-xs text-ink-2 sm:grid-cols-4">
@@ -55,28 +54,31 @@
 	</details>
 </section>
 
-<footer class="bg-page px-4 py-10 text-xs text-ink-2">
-	<div class="mx-auto grid max-w-[1280px] grid-cols-2 gap-6 sm:grid-cols-4">
-		<div class="col-span-2">
-			<Logo />
-			<p class="mt-2 max-w-sm text-[0.8rem] leading-relaxed">{t('pub.footer.tagline')}</p>
+<footer class="min-h-[260px] bg-page px-4 py-10 text-xs text-ink-3">
+	<div class="mx-auto grid max-w-[1280px] grid-cols-2 gap-6 opacity-80 sm:grid-cols-4">
+		<div>
+			<div class="mb-2 font-bold text-ink-2">{t('app.name')}</div>
+			<p class="text-[11px] leading-relaxed">{t('pub.footer.tagline')}</p>
 		</div>
 		<nav aria-label={t('pub.footer.label')}>
-			<div class="mb-2 font-bold text-ink">{t('pub.footer.browse')}</div>
-			<ul class="space-y-1.5 text-[0.78rem]">
-				<li><a href={resolve('/(site)')} class="hover:underline">{t('pub.nav.home')}</a></li>
-				<li><a href={resolve('/(site)/categories')} class="hover:underline">{t('pub.nav.categories')}</a></li>
-				<li><a href={resolve('/(site)/search')} class="hover:underline">{t('pub.nav.search')}</a></li>
+			<div class="mb-2 font-bold text-ink-2">{t('pub.footer.browse')}</div>
+			<ul class="text-[11px]">
+				<li><a href={resolve('/(site)')} class="inline-block py-1.5 hover:underline">{t('pub.nav.home')}</a></li>
+				<li><a href={resolve('/(site)/categories')} class="inline-block py-1.5 hover:underline">{t('pub.nav.categories')}</a></li>
+				<li><a href={resolve('/(site)/search')} class="inline-block py-1.5 hover:underline">{t('pub.nav.search')}</a></li>
 			</ul>
 		</nav>
 		<div>
-			<div class="mb-2 font-bold text-ink">{t('pub.footer.account')}</div>
-			<ul class="space-y-1.5 text-[0.78rem]">
-				<li><a href={data.user ? resolve('/(site)/me') : resolve('/(site)/login')} class="hover:underline">{data.user ? t('pub.nav.me') : t('auth.login')}</a></li>
+			<div class="mb-2 font-bold text-ink-2">{t('pub.footer.account')}</div>
+			<ul class="text-[11px]">
+				<li><a href={data.user ? resolve('/(site)/me') : resolve('/(site)/login')} class="inline-block py-1.5 hover:underline">{data.user ? t('pub.nav.me') : t('auth.login')}</a></li>
 			</ul>
 		</div>
+		<div>
+			<div class="mb-2 font-bold text-ink-2">{t('pub.footer.legal')}</div>
+			<p class="text-[11px] leading-relaxed">{t('pub.footer.free', { year: new Date().getFullYear() })}</p>
+		</div>
 	</div>
-	<p class="mx-auto mt-8 max-w-[1280px]">{t('pub.footer.free', { year: new Date().getFullYear() })}</p>
 </footer>
 
 <style>

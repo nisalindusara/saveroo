@@ -6,12 +6,13 @@
 	import type { Snippet } from 'svelte';
 
 	let {
-		title,
+		title = '',
 		id,
 		right,
 		children
 	}: {
-		title: string;
+		/** Leave out for a section without a heading (as the reference's story and grid sections). */
+		title?: string;
 		/** Anchor for in-page links ("#today"). */
 		id?: string;
 		right?: Snippet;
@@ -20,9 +21,11 @@
 </script>
 
 <section {id} class="mb-9 scroll-mt-32">
-	<div class="mb-4 flex items-center justify-between gap-3 px-4 sm:px-7">
-		<h2 class="text-[1.375rem] font-extrabold tracking-[-0.02em] sm:text-2xl">{title}</h2>
-		{#if right}{@render right()}{/if}
-	</div>
+	{#if title}
+		<div class="mb-4 flex items-center justify-between gap-3 px-4 sm:px-7">
+			<h2 class="text-[22px] font-extrabold tracking-[-0.02em] text-ink sm:text-[24px]">{title}</h2>
+			{#if right}{@render right()}{/if}
+		</div>
+	{/if}
 	{@render children()}
 </section>

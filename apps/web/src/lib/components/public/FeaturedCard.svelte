@@ -12,12 +12,12 @@
 	const colours = $derived(posterColours(deal.merchant.name));
 </script>
 
-<a href={resolve('/(site)/deals/[slug]', { slug: deal.slug })} class="card group flex w-[17.4rem] flex-col rounded-xl bg-surface px-2.5 pt-2.5 pb-5">
-	<div class="relative h-[9.9rem] overflow-hidden rounded-lg" style:background={colours.bg}>
+<a href={resolve('/(site)/deals/[slug]', { slug: deal.slug })} class="card group flex min-h-[315px] w-[278px] shrink-0 flex-col rounded-xl bg-surface px-[10px] pt-[10px] pb-[20px]">
+	<div class="relative h-[158px] overflow-hidden rounded-lg" style:background={colours.bg}>
 		{#if deal.imageKey}
 			<img src={imageUrl(supabaseUrl, deal.imageKey, 640)} alt="" loading="lazy" decoding="async" class="poster h-full w-full object-cover" />
 		{/if}
-		<span class="absolute bottom-2.5 left-2.5 rounded-md bg-white px-2 py-[3px] text-[0.72rem] font-bold text-[#1a1f26]">{label}</span>
+		<span class="absolute bottom-2.5 left-2.5 rounded-md bg-white px-2 py-[3px] text-[11.5px] font-bold text-[#1a1f26]">{label}</span>
 		<span class="absolute right-2.5 bottom-2.5 grid size-12 place-items-center overflow-hidden rounded-lg bg-white shadow-[0_2px_6px_rgb(0_0_0/0.12)]">
 			{#if deal.merchant.logoKey}
 				<img src={imageUrl(supabaseUrl, deal.merchant.logoKey, 320)} alt="" loading="lazy" class="h-full w-full object-contain p-1" />
@@ -26,9 +26,9 @@
 			{/if}
 		</span>
 	</div>
-	<div class="px-1 pt-2.5">
-		<p class="mb-1 truncate text-[0.8rem] text-ink-2">{deal.merchant.name}</p>
-		<h3 class="line-clamp-2 text-[0.94rem] leading-[1.35] font-bold transition-colors group-hover:text-roo-ink">{deal.title}</h3>
+	<div class="px-1 pt-[10px]">
+		<p class="mb-[5px] truncate text-[13px] text-ink-2">{deal.merchant.name}</p>
+		<h3 class="text-[15px] leading-[1.35] font-bold text-ink transition-colors group-hover:text-roo-ink">{deal.title}</h3>
 	</div>
 </a>
 

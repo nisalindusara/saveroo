@@ -12,6 +12,7 @@
 	import FeaturedCard from '#lib/components/public/FeaturedCard.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
 	import Rail from '#lib/components/public/Rail.svelte';
+	import { resolve } from '$app/paths';
 	import Section from '#lib/components/public/Section.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import StoryCard from '#lib/components/public/StoryCard.svelte';
@@ -55,17 +56,17 @@
 				<span class="hidden text-ink-2 sm:inline">· {t('pub.home.offers_count', { count: home.counts.today })}</span>
 			</span>
 		{/snippet}
-		<Rail>
+		<Rail arrowTop="86px">
 			{#each home.today as deal, i (deal.id)}
-				<DealCard {deal} today={data.today} supabaseUrl={data.supabaseUrl} index={i} priority={i < 2} width="17rem" />
+				<DealCard {deal} today={data.today} supabaseUrl={data.supabaseUrl} index={i} priority={i < 2} width="274px" />
 			{/each}
 		</Rail>
 	</Section>
 {/if}
 
 {#if home.ending.length}
-	<Section title={t('pub.home.ending')} id="ending">
-		<Rail arrowTop="8.25rem">
+	<Section id="ending">
+		<Rail arrowTop="132px">
 			{#each home.ending as deal, i (deal.id)}
 				<StoryCard {deal} supabaseUrl={data.supabaseUrl} index={i} />
 			{/each}
@@ -74,11 +75,11 @@
 {/if}
 
 {#if featured.deals.length}
-	<section class="panel mx-4 mb-8 pt-5 pb-6 sm:mx-7">
-		<h2 class="mb-4 flex items-center gap-2 px-5 text-lg font-extrabold tracking-[-0.01em]">
-			<Icon name="sparkle" size={19} stroke={1.9} />{featured.title}
+	<section class="panel mx-4 mb-8 overflow-hidden pt-5 pb-6 sm:mx-7">
+		<h2 class="mb-4 flex items-center gap-2 px-5 text-[18px] font-extrabold tracking-[-0.01em]">
+			<Icon name="megaphone" size={20} stroke={1.8} />{featured.title}
 		</h2>
-		<Rail arrowTop="5.6rem">
+		<Rail arrowTop="89px">
 			{#each featured.deals as deal (deal.id)}
 				<FeaturedCard {deal} label={featured.label} supabaseUrl={data.supabaseUrl} />
 			{/each}
@@ -87,15 +88,18 @@
 {/if}
 
 {#if shops.length > 2}
-	<section class="panel mx-4 mb-9 pt-5 pb-6 sm:mx-7">
-		<h2 class="mb-4 flex items-center gap-2 px-5 text-lg font-extrabold tracking-[-0.01em]">
-			<Icon name="shield" size={19} stroke={1.9} />{t('pub.home.shops')}
-		</h2>
+	<section class="panel mx-4 mb-9 overflow-hidden pt-5 pb-6 sm:mx-7">
+		<div class="mb-4 flex items-center justify-between px-5">
+			<h2 class="flex items-center gap-2 text-[18px] font-extrabold tracking-[-0.01em]">
+				<Icon name="shield" size={20} stroke={1.8} />{t('pub.home.brands')}
+			</h2>
+			<a href={resolve('/(site)/search')} class="text-[13.5px] font-semibold text-roo-ink hover:underline">{t('pub.home.view_all')}</a>
+		</div>
 		<BrandCircles {shops} supabaseUrl={data.supabaseUrl} />
 	</section>
 {/if}
 
-<Section title={t('pub.home.fresh')}>
+<Section>
 	<div class="px-4 sm:px-7">
 		{#if home.latest.length}
 			<DealGrid

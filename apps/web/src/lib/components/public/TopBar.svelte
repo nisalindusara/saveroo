@@ -22,8 +22,8 @@
 </script>
 
 <header class="sticky top-0 z-40 border-b border-line bg-bg" style:view-transition-name="top-bar">
-	<div class="mx-auto max-w-[1280px] px-4 pt-3 pb-1.5 sm:px-6">
-		<div class="flex items-center gap-3 sm:gap-6">
+	<div class="mx-auto max-w-[1280px] px-4 pt-3.5 pb-2 sm:px-6">
+		<div class="flex items-center gap-3 sm:gap-5 lg:gap-7">
 			<a href={resolve('/(site)')} class="press shrink-0" aria-label={t('pub.home_label')}><Logo /></a>
 
 			{#if !onSearch}
@@ -31,7 +31,7 @@
 					href={resolve('/(site)/search')}
 					class="search flex h-11 min-w-0 flex-1 items-center rounded-full border-[1.5px] border-roo bg-surface pr-1.5 pl-4 sm:max-w-[455px]"
 				>
-					<span class="truncate text-[0.9rem] font-medium text-ink-2">{t('pub.search_placeholder')}</span>
+					<span class="truncate text-[14.5px] font-medium text-ink">{t('pub.search_placeholder')}</span>
 					<span class="ml-auto grid size-[34px] shrink-0 place-items-center rounded-full bg-roo text-white"><Icon name="search" size={16} stroke={2.4} /></span>
 				</a>
 			{:else}
@@ -40,27 +40,27 @@
 
 			<a
 				href={signedIn ? resolve('/(site)/me') : resolve('/(site)/login')}
-				class="press ml-auto flex shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3 py-2 text-[0.85rem] font-medium text-ink"
+				class="ml-auto flex shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3 py-2 text-ink-2 transition-colors hover:bg-[#e5e7eb]"
 				aria-label={signedIn ? t('pub.nav.me') : t('auth.login')}
 			>
-				<Icon name="user" size={17} stroke={1.9} />
-				<span class="hidden md:inline">{signedIn ? t('pub.nav.me') : t('auth.login')}</span>
+				<Icon name="user" size={16} stroke={1.9} />
+				<Icon name="chevronDown" size={14} stroke={2} />
 			</a>
 		</div>
 
 		{#if categories.length}
-			<div class="relative mt-2.5">
-				<nav bind:this={tabs} onscroll={update} class="tabs flex items-center gap-5 overflow-x-auto pr-10 text-[0.84rem] font-medium" aria-label={t('pub.nav.categories')}>
+			<div class="relative mt-3 pt-1 pb-1">
+				<nav bind:this={tabs} onscroll={update} class="tabs flex items-center justify-between gap-4 overflow-x-auto pr-8 text-[13.5px] font-medium" aria-label={t('pub.nav.categories')}>
 					{#each categories as c (c.slug)}
 						<a
 							href={resolve('/(site)/categories/[slug]', { slug: c.slug })}
-							class="tab flex shrink-0 items-center gap-2 py-1.5 whitespace-nowrap"
+							class="tab flex shrink-0 items-center gap-2 py-1 whitespace-nowrap"
 							aria-current={activeCategory === c.slug ? 'page' : undefined}
 						>
 							<Icon name={categoryIcon(c.icon)} size={16} stroke={1.8} />{c.name}
 						</a>
 					{/each}
-					<a href={resolve('/(site)/categories')} class="tab flex shrink-0 items-center gap-2 py-1.5 whitespace-nowrap">
+					<a href={resolve('/(site)/categories')} class="tab flex shrink-0 items-center gap-2 py-1 whitespace-nowrap">
 						<Icon name="grid" size={16} stroke={1.8} />{t('pub.nav.all_categories')}
 					</a>
 				</nav>
@@ -90,13 +90,22 @@
 		display: none;
 	}
 	.tab {
-		color: var(--ink);
+		color: #2d3138;
 		border-bottom: 2px solid transparent;
 		transition: color 150ms;
+	}
+	.tab :global(svg) {
+		color: #374151;
 	}
 	.tab:hover,
 	.tab[aria-current='page'] {
 		color: var(--roo-ink);
+	}
+	@media (prefers-color-scheme: dark) {
+		.tab,
+		.tab :global(svg) {
+			color: var(--ink);
+		}
 	}
 	.tab[aria-current='page'] {
 		border-bottom-color: var(--roo);
