@@ -29,3 +29,6 @@ supabase/.temp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Owner's design reference (local only, removed after use)
+example-site.html
