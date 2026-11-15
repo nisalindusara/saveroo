@@ -1,9 +1,10 @@
 <!--
-	Deal page: the full poster (never cropped) over a blurred copy of itself, opening full screen on tap;
-	a sheet with the value line, where it works, valid days (today highlighted), eligible cards, coupon,
-	branches, how to use it, terms and when it was last checked; and a bottom bar with the main action
-	(copy the code, directions or the shop's website) plus WhatsApp share. The poster continues the
-	card's view transition from the feed.
+	Deal page (layout after the owner's deal-page screenshot): breadcrumbs; shop, title, place, valid days
+	and last check, with the price lines and main action on the right; the poster (never cropped, over a
+	blurred copy; tap for full screen) with share and the Roo tag; "This offer" card (valid days, cards,
+	coupon, price, end date, main action); about, how to use it, "Need to know" and "About the shop"
+	sections; a right column with where to use it and sharing; then more from the shop, similar deals and
+	category chips. Phones get a bottom bar with the main action, WhatsApp and share.
 -->
 <script lang="ts">
 	import { afterNavigate, goto } from '$app/navigation';
@@ -11,7 +12,7 @@
 	import { page } from '$app/state';
 	import { cardValue, daysText, formatRs, savingText } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
-	import { imageUrl, shareImageUrl } from '@saveroo/shared/images';
+	import { imageSrcset, imageUrl, shareImageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
 	import { colomboDaysUntil, formatColomboDate } from '@saveroo/shared/time';
 	import CouponTicket from '#lib/components/public/CouponTicket.svelte';
@@ -22,13 +23,12 @@
 	import RooTag from '#lib/components/public/RooTag.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import WeekStrip from '#lib/components/public/WeekStrip.svelte';
-	import { endsWithin, posterColours, posterRatio, validOn } from '#lib/public/cards.js';
+	import { endsWithin, posterColours, validOn } from '#lib/public/cards.js';
 	import { nativeShare, whatsappUrl } from '#lib/public/share.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 	const deal = $derived(data.deal);
-	const ratio = $derived(posterRatio(deal));
 	const today = $derived(validOn(deal, data.today));
 	const daysLeft = $derived(endsWithin(deal, 7));
 	const saving = $derived(savingText(deal));
@@ -125,233 +125,238 @@
 	}}
 />
 
-<div class="mx-auto max-w-6xl px-4 sm:px-7 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-10 md:pt-3">
-	<!-- Poster -->
-	<div class="relative md:sticky md:top-32 md:self-start">
-		<div class="hero relative overflow-hidden rounded-2xl">
-			{#if deal.imageKey}
-				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" aria-hidden="true" class="backdrop" />
-			{:else}
-				<div class="absolute inset-0" style:background={colours.bg}></div>
-			{/if}
+<div class="mx-auto max-w-[1180px] px-4 pb-28 sm:px-7 md:pb-6">
+	<!-- Breadcrumbs -->
+	<nav class="crumbs flex flex-wrap items-center gap-1 text-[13px] text-ink-2" aria-label={t('pub.deal.breadcrumbs')}>
+		<a href={resolve('/(site)')} class="hover:underline">{t('pub.nav.home')}</a>
+		{#if deal.category}
+			<span aria-hidden="true">›</span>
+			<a href={resolve('/(site)/categories/[slug]', { slug: deal.category.slug })} class="hover:underline">{deal.category.name}</a>
+		{/if}
+		<span aria-hidden="true">›</span>
+		<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="hover:underline">{deal.merchant.name}</a>
+	</nav>
 
-			<div class="absolute inset-x-3 top-3 z-10 flex justify-between md:hidden">
-				<button class="round press" onclick={back} aria-label={t('pub.back')}><Icon name="back" size={20} stroke={2.3} /></button>
-				<button class="round press" onclick={share} aria-label={t('pub.deal.share')}><Icon name="share" size={19} stroke={2.3} /></button>
-			</div>
-
-			<div class="relative flex justify-center px-6 pt-14 pb-11 md:px-10 md:py-10">
-				<div class="relative">
-				{#if deal.imageKey}
-					<button
-						type="button"
-						class="poster press"
-						style:aspect-ratio={ratio}
-						style:--r={ratio}
-						style:view-transition-name="deal-{deal.id}"
-						onclick={() => lightbox?.showModal()}
-						aria-label={t('pub.deal.zoom')}
-					>
-						<img
-							src={imageUrl(data.supabaseUrl, deal.imageKey, 640)}
-							alt={deal.title}
-							fetchpriority="high"
-							class="h-full w-full {deal.imageRatio ? 'object-cover' : 'object-contain'}"
-						/>
-					</button>
+	<!-- Title row: shop, title, place and facts on the left; price and main action on the right -->
+	<div class="mt-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-10">
+		<div class="min-w-0">
+			<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="text-[14px] text-ink-2 hover:underline">{deal.merchant.name}</a>
+			<h1 class="mt-0.5 text-[1.6rem] leading-[1.2] font-extrabold tracking-[-0.02em] text-ink md:text-[2rem]">{deal.title}</h1>
+			<p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-ink-2">
+				{#if deal.place}
+					<a href="#where" class="flex items-center gap-1 underline underline-offset-2"><Icon name="pin" size={15} stroke={2} />{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}</a>
 				{:else}
-					<div
-						class="poster flex flex-col justify-between p-6"
-						style:aspect-ratio="0.8"
-						style:--r="0.8"
-						style:background={colours.bg}
-						style:color={colours.fg}
-						style:view-transition-name="deal-{deal.id}"
-					>
-						<span class="text-sm font-bold tracking-wider uppercase">{deal.merchant.name}</span>
-						<span class="font-display text-3xl leading-tight font-extrabold">{deal.title}</span>
-					</div>
+					<span class="flex items-center gap-1"><Icon name="globe" size={15} stroke={2} />{t('pub.card.online')}</span>
 				{/if}
-				<span class="sticker"><RooTag {deal} /></span>
-				</div>
-			</div>
+				<span class="flex items-center gap-1.5"><WeekStrip days={deal.validDays} today={data.today} />{today ? t('pub.deal.works_today') : t('pub.deal.not_today')}</span>
+				{#if checkedDays !== null}<span class="flex items-center gap-1 {deal.verification === 'verified' ? 'text-leaf' : ''}"><Icon name="shield" size={15} stroke={2} />{checkedDays === 0 ? t('pub.deal.checked_today') : t('pub.deal.checked_days', { days: checkedDays })}</span>{/if}
+			</p>
+		</div>
+		<div class="hidden shrink-0 text-right md:block">
+			{@render priceLines('lg')}
+			<div class="mt-3 flex justify-end">{@render mainAction()}</div>
 		</div>
 	</div>
 
-	<!-- Ticket sheet -->
-	<article class="sheet relative pt-6 pb-28 md:pt-0 md:pb-4">
-		<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="press inline-flex items-center gap-2 text-sm font-semibold text-ink-2">
-			{#if deal.merchant.logoKey}
-				<img src={imageUrl(data.supabaseUrl, deal.merchant.logoKey, 320)} alt="" width="28" height="28" class="size-7 rounded-full object-cover ring-1 ring-line" />
-			{:else}
-				<span class="grid size-7 place-items-center rounded-full text-xs font-bold text-white" style:background={colours.bg}>{deal.merchant.name[0]}</span>
-			{/if}
-			{deal.merchant.name}
-			<Icon name="chevron" size={15} stroke={2.4} />
-		</a>
-
-		<h1 class="font-display mt-2 text-[1.75rem] leading-[1.08] font-extrabold tracking-[-0.03em] text-balance md:text-4xl">{deal.title}</h1>
-		<p class="mt-2 flex items-center gap-1.5 text-[0.88rem] text-ink-2">
-			{#if deal.place}
-				<Icon name="pin" size={15} stroke={2.2} />{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}
-			{:else}
-				<Icon name="globe" size={15} stroke={2.2} />{t('pub.card.online')}
-			{/if}
-		</p>
-
-		<div class="value-box mt-5 flex flex-wrap items-center justify-between gap-4">
-			<div class="min-w-0">
-				<p class="flex flex-wrap items-baseline gap-x-2">
-					{#if value.was}<s class="text-base text-[#888d93]">{value.was}</s>{/if}
-					<span class="text-[1.9rem] leading-none font-black tracking-[-0.03em] text-roo-ink">{value.main}</span>
-					{#if value.pill}<span class="self-center rounded bg-roo-soft px-2 py-0.5 text-xs font-bold text-roo-ink">{value.pill}</span>{/if}
-				</p>
-				{#if conditions.length}<p class="mt-1.5 text-[0.88rem] font-medium text-ink-2">{conditions.join(' · ')}</p>{/if}
-				{#if deal.couponCode}<p class="mt-1 text-[0.85rem] font-semibold text-promo">{t('pub.card.use_code')} <span class="text-base font-extrabold">{deal.couponCode}</span></p>{/if}
-			</div>
-			<div class="hidden md:block">{@render mainAction()}</div>
-		</div>
-		<div class="mt-3 hidden gap-2 md:flex">
-			{#if action}
-				<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2">
-					<Icon name="whatsapp" size={17} stroke={2} class="text-[#0f7f43]" />{t('pub.deal.share_whatsapp')}
-				</ExternalLink>
-			{/if}
-			<button class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2" onclick={share}>
-				<Icon name="share" size={16} stroke={2.2} />{t('pub.deal.share')}
+	<!-- Picture -->
+	<div class="gallery relative mt-5 overflow-hidden rounded-xl bg-surface-2" style:view-transition-name="deal-{deal.id}">
+		{#if deal.imageKey}
+			<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" aria-hidden="true" class="backdrop" />
+			<button type="button" class="relative block h-full w-full cursor-zoom-in" onclick={() => lightbox?.showModal()} aria-label={t('pub.deal.zoom')}>
+				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 1280)} srcset={imageSrcset(data.supabaseUrl, deal.imageKey)} sizes="(min-width: 1180px) 1120px, 94vw" alt={deal.title} fetchpriority="high" class="h-full w-full object-contain" />
 			</button>
+		{:else}
+			<div class="flex h-full flex-col justify-end p-6" style:background={colours.bg} style:color={colours.fg}>
+				<span class="text-sm font-bold tracking-wider uppercase">{deal.merchant.name}</span>
+				<span class="text-4xl leading-tight font-black">{value.main}</span>
+			</div>
+		{/if}
+		<div class="absolute top-3 right-3 z-10 flex gap-2">
+			{#if cameFromSite}<button class="round md:hidden" onclick={back} aria-label={t('pub.back')}><Icon name="back" size={19} stroke={2.2} /></button>{/if}
+			<button class="round" onclick={share} aria-label={t('pub.deal.share')}><Icon name="share" size={18} stroke={2.2} /></button>
+		</div>
+		{#if deal.imageKey}
+			<button class="absolute right-3 bottom-3 z-10 rounded-lg bg-black/65 px-3 py-1.5 text-[12px] font-semibold text-white" onclick={() => lightbox?.showModal()}>{t('pub.deal.see_poster')}</button>
+		{/if}
+		<span class="sticker"><RooTag {deal} /></span>
+	</div>
+
+	<!-- Two columns: the offer and its details; where to use it -->
+	<div class="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+		<div class="min-w-0">
+			<h2 class="text-[17px] font-extrabold">{t('pub.deal.this_offer')}</h2>
+			<div class="option mt-3 rounded-xl border-2 border-roo p-4">
+				{#if today}<span class="mb-2 inline-block rounded border border-roo px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-roo-ink uppercase">{t('pub.deal.works_today')}</span>{/if}
+				<p class="text-[16px] font-bold">{deal.title}</p>
+
+				<div class="mt-3 rounded-lg bg-leaf-soft px-3 py-2 text-[13px] text-leaf">
+					<span class="flex items-center gap-2 font-semibold"><Icon name="calendar" size={15} stroke={2.2} />{deal.validDays.length ? t('pub.valid_on', { days: daysText(deal.validDays) }) : t('pub.deal.every_day')}{#if times}{` · ${t('pub.deal.hours', { from: times.startTime ?? '', to: times.endTime ?? '' })}`}{/if}</span>
+				</div>
+
+				<p class="mt-4 text-[14px] font-bold">{t('pub.deal.cards')}</p>
+				{#if deal.eligibility.length === 0}
+					<p class="mt-1.5 flex items-center gap-2 text-[14px] text-leaf"><Icon name="check" size={16} stroke={2.6} />{t('pub.deal.open_to_all')}</p>
+				{:else}
+					<ul class="mt-1.5 space-y-1.5">
+						{#each deal.eligibility as e, i (i)}
+							<li class="flex items-center gap-2 text-[14px]">
+								<Icon name="check" size={16} stroke={2.6} class="text-leaf" />
+								<span><span class="font-semibold">{e.provider.name}</span> · {e.card ? e.card.name : e.cardType ? t(`pub.card_type.${e.cardType as 'credit'}`) : t('pub.deal.any_card_of')}{e.note ? ` · ${e.note}` : ''}</span>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+
+				{#if deal.coupons.length}
+					<div class="mt-4 space-y-3">{#each deal.coupons as c (c.code)}<CouponTicket code={c.code} />{/each}</div>
+				{/if}
+
+				<div class="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-line pt-4">
+					<div>
+						{@render priceLines('md')}
+						{#if conditions.length}<p class="mt-1 text-[13px] text-ink-2">{conditions.join(' · ')}</p>{/if}
+						<p class="mt-1 flex items-center gap-1 text-[13px] {daysLeft !== null ? 'font-semibold text-[#b45309]' : 'text-ink-2'}">
+							<Icon name="flame" size={14} stroke={2.2} />
+							{#if deal.endsAt}
+								{daysLeft === 0 ? t('pub.ends_today') : daysLeft !== null ? t('pub.deal.ends_in', { days: daysLeft, date: formatColomboDate(deal.endsAt) }) : t('pub.deal.until', { date: formatColomboDate(deal.endsAt) })}
+							{:else}
+								{t('pub.deal.no_end')}
+							{/if}
+						</p>
+					</div>
+					<div class="hidden md:block">{@render mainAction()}</div>
+				</div>
+			</div>
+
+			{#if deal.description}
+				<h2 class="mt-8 text-[17px] font-extrabold">{t('pub.deal.about_offer')}</h2>
+				<p class="mt-2 text-[14.5px] leading-relaxed whitespace-pre-line text-ink">{deal.description}</p>
+			{/if}
+			{#if deal.howToRedeem}
+				<h2 class="mt-8 text-[17px] font-extrabold">{t('pub.deal.how')}</h2>
+				<p class="mt-2 text-[14.5px] leading-relaxed whitespace-pre-line text-ink">{deal.howToRedeem}</p>
+			{/if}
+
+			<div class="mt-8 border-t border-line">
+				<details class="acc border-b border-line">
+					<summary class="flex cursor-pointer items-center justify-between py-4 text-[16px] font-bold">{t('pub.deal.need_to_know')}<Icon name="chevronDown" size={18} stroke={2.2} class="chev" /></summary>
+					<div class="space-y-2 pb-4 text-[14px] leading-relaxed text-ink-2">
+						{#if deal.endsAt}<p>{t('pub.deal.until', { date: formatColomboDate(deal.endsAt) })}.</p>{/if}
+						{#if blackout.length}<p>{t('pub.deal.blackout', { dates: blackout.map((d) => formatColomboDate(`${d}T06:00:00Z`)).join(', ') })}</p>{/if}
+						{#if deal.terms}<p class="whitespace-pre-line">{deal.terms}</p>{/if}
+						<p class="flex flex-wrap items-center gap-x-3">
+							<span class="{deal.verification === 'verified' ? 'font-semibold text-leaf' : ''}">{t(`pub.verification.${deal.verification}`)}</span>
+							{#if deal.sourceUrl}<ExternalLink href={deal.sourceUrl} nofollow class="inline-flex items-center gap-1 font-semibold underline">{t('pub.deal.source')}<Icon name="external" size={13} /></ExternalLink>{/if}
+						</p>
+					</div>
+				</details>
+				<details class="acc border-b border-line">
+					<summary class="flex cursor-pointer items-center justify-between py-4 text-[16px] font-bold">{t('pub.deal.about_merchant', { merchant: deal.merchant.name })}<Icon name="chevronDown" size={18} stroke={2.2} class="chev" /></summary>
+					<div class="flex items-center gap-3 pb-4">
+						{#if deal.merchant.logoKey}
+							<img src={imageUrl(data.supabaseUrl, deal.merchant.logoKey, 320)} alt="" width="48" height="48" class="size-12 rounded-lg object-contain ring-1 ring-line" />
+						{:else}
+							<span class="grid size-12 place-items-center rounded-lg text-lg font-black text-white" style:background={colours.bg}>{deal.merchant.name[0]}</span>
+						{/if}
+						<div class="text-[14px]">
+							<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="font-semibold text-roo-ink hover:underline">{t('pub.deal.all_from', { merchant: deal.merchant.name })}</a>
+							{#if deal.merchant.websiteUrl}
+								<ExternalLink href={deal.merchant.websiteUrl} class="mt-0.5 flex items-center gap-1 text-ink-2 hover:underline">{t('pub.deal.visit_site')}<Icon name="external" size={13} /></ExternalLink>
+							{/if}
+						</div>
+					</div>
+				</details>
+			</div>
 		</div>
 
-		<!-- When -->
-		<section class="block-card mt-6">
-			<div class="flex items-center justify-between gap-2">
-				<h2 class="label">{t('pub.deal.when')}</h2>
-				{#if today}
-					<span class="status bg-leaf-soft text-leaf"><Icon name="check" size={14} stroke={3} />{t('pub.deal.works_today')}</span>
-				{:else}
-					<span class="status bg-surface-2 text-ink-2">{t('pub.deal.not_today')}</span>
-				{/if}
-			</div>
-			<div class="mt-3"><WeekStrip days={deal.validDays} today={data.today} size="lg" /></div>
-			<ul class="mt-3 space-y-1.5 text-[0.9rem]">
-				<li class="flex items-center gap-2"><Icon name="calendar" size={16} class="text-ink-2" />{deal.validDays.length ? t('pub.valid_on', { days: daysText(deal.validDays) }) : t('pub.deal.every_day')}</li>
-				{#if times}
-					<li class="flex items-center gap-2"><Icon name="clock" size={16} class="text-ink-2" />{t('pub.deal.hours', { from: times.startTime ?? '', to: times.endTime ?? '' })}</li>
-				{/if}
-				<li class="flex items-center gap-2">
-					<Icon name="flame" size={16} class={daysLeft !== null ? 'text-sun' : 'text-ink-2'} />
-					{#if deal.endsAt}
-						{daysLeft === 0 ? t('pub.ends_today') : daysLeft !== null ? t('pub.deal.ends_in', { days: daysLeft, date: formatColomboDate(deal.endsAt) }) : t('pub.deal.until', { date: formatColomboDate(deal.endsAt) })}
-					{:else}
-						{t('pub.deal.no_end')}
+		<!-- Right column -->
+		<aside class="space-y-4 lg:sticky lg:top-40 lg:self-start">
+			<section id="where" class="scroll-mt-40 rounded-xl border border-line p-4">
+				<h2 class="flex items-center justify-between text-[16px] font-bold">
+					{t('pub.deal.where_use')}
+					<span class="flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2">
+						<Icon name={deal.channel === 'online' ? 'globe' : 'store'} size={13} stroke={2.2} />{t(`pub.channel.${deal.channel}`)}
+					</span>
+				</h2>
+				{#if deal.branches.length}
+					<p class="mt-2 text-[13px] text-ink-2">{deal.allBranches ? t('pub.deal.all_branches') : t('pub.deal.these_branches')}</p>
+					<ul class="mt-1 divide-y divide-line">
+						{#each showAllBranches ? deal.branches : deal.branches.slice(0, 4) as b (b.name)}
+							<li class="flex items-center justify-between gap-3 py-2.5">
+								<span class="min-w-0 text-[14px]"><span class="font-semibold">{b.name}</span>{#if b.city && b.city !== b.name}<span class="block text-[13px] text-ink-2">{b.city}</span>{/if}</span>
+								<ExternalLink href={mapsUrl(b)} class="press flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold">
+									<Icon name="pin" size={14} stroke={2.3} />{t('pub.deal.directions')}
+								</ExternalLink>
+							</li>
+						{/each}
+					</ul>
+					{#if deal.branches.length > 4 && !showAllBranches}
+						<button class="mt-1 text-sm font-semibold text-roo-ink" onclick={() => (showAllBranches = true)}>{t('pub.deal.all_n_branches', { count: deal.branches.length })}</button>
 					{/if}
-				</li>
-				{#if blackout.length}
-					<li class="text-ink-2">{t('pub.deal.blackout', { dates: blackout.map((d) => formatColomboDate(`${d}T06:00:00Z`)).join(', ') })}</li>
+				{:else if deal.channel !== 'online'}
+					<p class="mt-2 text-[13px] text-ink-2">{t('pub.deal.all_branches')}</p>
 				{/if}
-			</ul>
-		</section>
-
-		<!-- Cards -->
-		<section class="block-card mt-4">
-			<h2 class="label">{t('pub.deal.cards')}</h2>
-			{#if deal.eligibility.length === 0}
-				<p class="mt-2 flex items-center gap-2 text-[0.92rem] font-medium text-leaf"><Icon name="check" size={16} stroke={2.6} />{t('pub.deal.open_to_all')}</p>
-			{:else}
-				<ul class="mt-3 space-y-2">
-					{#each deal.eligibility as e, i (i)}
-						<li class="flex items-center gap-3">
-							<span class="bank">{providerShortName(e.provider)}</span>
-							<span class="min-w-0 text-[0.9rem]">
-								<span class="font-semibold">{e.provider.name}</span>
-								<span class="block text-ink-2">
-									{e.card ? e.card.name : e.cardType ? t(`pub.card_type.${e.cardType as 'credit'}`) : t('pub.deal.any_card_of')}{e.note ? ` · ${e.note}` : ''}
-								</span>
-							</span>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
-
-		{#if deal.coupons.length}
-			<section class="mt-5 space-y-3">
-				{#each deal.coupons as c (c.code)}<CouponTicket code={c.code} />{/each}
-			</section>
-		{/if}
-
-		<!-- Where -->
-		<section class="block-card mt-4">
-			<div class="flex items-center justify-between">
-				<h2 class="label">{t('pub.deal.where')}</h2>
-				<span class="status bg-surface-2 text-ink">
-					<Icon name={deal.channel === 'online' ? 'globe' : 'store'} size={14} stroke={2.3} />{t(`pub.channel.${deal.channel}`)}
-				</span>
-			</div>
-			{#if deal.branches.length}
-				<p class="mt-2 text-[0.85rem] text-ink-2">{deal.allBranches ? t('pub.deal.all_branches') : t('pub.deal.these_branches')}</p>
-				<ul class="mt-2 divide-y divide-line">
-					{#each showAllBranches ? deal.branches : deal.branches.slice(0, 4) as b (b.name)}
-						<li class="flex items-center justify-between gap-3 py-2.5">
-							<span class="min-w-0 text-[0.9rem]"><span class="font-semibold">{b.name}</span>{#if b.city}<span class="text-ink-2"> · {b.city}</span>{/if}</span>
-							<ExternalLink href={mapsUrl(b)} class="press flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold">
-								<Icon name="pin" size={14} stroke={2.3} />{t('pub.deal.directions')}
-							</ExternalLink>
-						</li>
-					{/each}
-				</ul>
-				{#if deal.branches.length > 4 && !showAllBranches}
-					<button class="mt-1 text-sm font-semibold text-roo-ink" onclick={() => (showAllBranches = true)}>{t('pub.deal.all_n_branches', { count: deal.branches.length })}</button>
+				{#if deal.merchant.websiteUrl && deal.channel !== 'in_store'}
+					<ExternalLink href={deal.merchant.websiteUrl} class="press mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-roo-ink">
+						{t('pub.deal.visit_site')}<Icon name="external" size={15} stroke={2.3} />
+					</ExternalLink>
 				{/if}
-			{/if}
-			{#if deal.merchant.websiteUrl && deal.channel !== 'in_store'}
-				<ExternalLink href={deal.merchant.websiteUrl} class="press mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-roo-ink">
-					{t('pub.deal.visit_site')}<Icon name="external" size={15} stroke={2.3} />
-				</ExternalLink>
-			{/if}
-		</section>
-
-		{#if deal.howToRedeem}
-			<section class="mt-6">
-				<h2 class="label">{t('pub.deal.how')}</h2>
-				<p class="mt-2 text-[0.95rem] leading-relaxed whitespace-pre-line">{deal.howToRedeem}</p>
 			</section>
-		{/if}
-		{#if deal.description}
-			<p class="mt-5 text-[0.95rem] leading-relaxed whitespace-pre-line text-ink-2">{deal.description}</p>
-		{/if}
-		{#if deal.terms}
-			<details class="terms mt-5">
-				<summary class="flex cursor-pointer items-center justify-between py-2 font-semibold">{t('pub.deal.terms')}<Icon name="chevron" size={16} stroke={2.4} class="chev" /></summary>
-				<p class="pt-1 pb-2 text-[0.88rem] leading-relaxed whitespace-pre-line text-ink-2">{deal.terms}</p>
-			</details>
-		{/if}
 
-		<!-- Trust -->
-		<p class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-4 text-[0.8rem] text-ink-2">
-			<span class="flex items-center gap-1.5 font-semibold {deal.verification === 'verified' ? 'text-leaf' : ''}">
-				<Icon name="shield" size={15} stroke={2.2} />{t(`pub.verification.${deal.verification}`)}
-			</span>
-			{#if checkedDays !== null}<span>{checkedDays === 0 ? t('pub.deal.checked_today') : t('pub.deal.checked_days', { days: checkedDays })}</span>{/if}
-			{#if deal.sourceUrl}
-				<ExternalLink href={deal.sourceUrl} nofollow class="flex items-center gap-1 font-semibold underline">{t('pub.deal.source')}<Icon name="external" size={13} /></ExternalLink>
-			{/if}
-		</p>
-	</article>
+			<section class="rounded-xl border border-line p-4">
+				<h2 class="text-[16px] font-bold">{t('pub.deal.share_title')}</h2>
+				<p class="mt-1 text-[13px] text-ink-2">{t('pub.deal.share_sub')}</p>
+				<div class="mt-3 flex gap-2">
+					<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex flex-1 items-center justify-center gap-2 rounded-full bg-[#0f7f43] px-4 py-2.5 text-sm font-bold text-white">
+						<Icon name="whatsapp" size={17} stroke={2} />{t('pub.deal.share_whatsapp')}
+					</ExternalLink>
+					<button class="press grid w-11 shrink-0 place-items-center rounded-full border border-line" onclick={share} aria-label={t('pub.deal.share')}><Icon name="share" size={17} stroke={2.2} /></button>
+				</div>
+			</section>
+		</aside>
+	</div>
 </div>
 
 {#await data.more then more}
-{#if more.length}
-	<section class="mx-auto mt-2 max-w-6xl md:mt-10">
-		<h2 class="px-4 text-[1.375rem] font-extrabold tracking-[-0.02em] sm:px-7 sm:text-2xl">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
-		<div class="mt-3">
-			<Rail>
-				{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="17rem" />{/each}
-			</Rail>
+	{#if more.length}
+		<section class="mx-auto mt-6 max-w-[1180px]">
+			<h2 class="px-4 text-[20px] font-extrabold tracking-[-0.01em] sm:px-7">{t('pub.deal.more_from', { merchant: deal.merchant.name })}</h2>
+			<div class="mt-3"><Rail arrowTop="86px">{#each more as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="274px" />{/each}</Rail></div>
+		</section>
+	{/if}
+{/await}
+{#await data.similar then similar}
+	{#if similar.length}
+		<section class="mx-auto mt-8 max-w-[1180px]">
+			<h2 class="px-4 text-[20px] font-extrabold tracking-[-0.01em] sm:px-7">{t('pub.deal.similar')}</h2>
+			<div class="mt-3"><Rail arrowTop="86px">{#each similar as d, i (d.id)}<DealCard deal={d} today={data.today} supabaseUrl={data.supabaseUrl} index={i} width="274px" />{/each}</Rail></div>
+		</section>
+	{/if}
+{/await}
+{#if data.navCategories.length}
+	<section class="mx-auto mt-8 mb-4 max-w-[1180px] px-4 sm:px-7">
+		<h2 class="text-[20px] font-extrabold tracking-[-0.01em]">{t('pub.deal.explore')}</h2>
+		<div class="mt-3 flex flex-wrap gap-2">
+			{#each data.navCategories as c (c.slug)}
+				<a href={resolve('/(site)/categories/[slug]', { slug: c.slug })} class="rounded-full border border-line px-3.5 py-1.5 text-[13px] font-medium hover:border-roo hover:bg-roo-soft">{c.name}</a>
+			{/each}
 		</div>
 	</section>
 {/if}
-{/await}
+
+{#snippet priceLines(size: 'md' | 'lg')}
+	<p class="flex flex-wrap items-baseline gap-x-1.5 {size === 'lg' ? 'justify-end' : ''}">
+		{#if value.was}<s class="text-[15px] text-[#888d93]">{value.was}</s>{/if}
+		{#if !deal.couponCode || deal.couponPrice !== null}<span class="text-[17px] font-extrabold text-roo-ink">{value.main}</span>{/if}
+		{#if value.pill}<span class="rounded bg-roo-soft px-1.5 py-0.5 text-[12px] font-extrabold text-[#8c6244]">{value.pill}</span>{/if}
+	</p>
+	{#if deal.couponCode}
+		<p class="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-promo {size === 'lg' ? 'justify-end' : ''}">
+			<span class="{size === 'lg' ? 'text-[24px]' : 'text-[20px]'} font-extrabold">{deal.couponPrice !== null ? formatRs(deal.couponPrice) : value.main}</span>
+			<span class="text-[13px] font-semibold">{t('pub.card.with_code', { code: deal.couponCode })}</span>
+		</p>
+	{/if}
+{/snippet}
 
 {#snippet mainAction()}
 	{#if action?.kind === 'copy'}
@@ -392,8 +397,8 @@
 {/if}
 
 <style>
-	.hero {
-		min-height: 22rem;
+	.gallery {
+		height: clamp(15rem, 56vw, 26rem);
 	}
 	.backdrop {
 		position: absolute;
@@ -401,101 +406,32 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		filter: blur(36px) saturate(1.35);
+		filter: blur(36px) saturate(1.3);
 		transform: scale(1.3);
-		opacity: 0.75;
-	}
-	.hero::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(to bottom, transparent 60%, rgb(0 0 0 / 0.12));
-		pointer-events: none;
-	}
-	.poster {
-		position: relative;
-		z-index: 1;
-		display: block;
-		/* Leave room for the merchant, title and tag to peek up on the first screen. */
-		width: min(100%, calc(48svh * var(--r, 1)));
-		max-width: 26rem;
-		max-height: 48svh;
-		overflow: hidden;
-		border-radius: 1.25rem;
-		box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.08);
-		cursor: zoom-in;
+		opacity: 0.7;
 	}
 	.round {
 		display: grid;
 		place-items: center;
-		width: 2.6rem;
-		height: 2.6rem;
+		width: 2.5rem;
+		height: 2.5rem;
 		border-radius: 50%;
-		background: rgb(255 255 255 / 0.82);
-		color: #1a1410;
-		backdrop-filter: blur(12px);
-		box-shadow: 0 4px 14px rgb(0 0 0 / 0.18);
+		background: rgb(255 255 255 / 0.9);
+		color: #191c1f;
+		box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
 	}
-	.sheet {
-		z-index: 2;
-	}
-	/* Price box as in the reference design's quick view. */
-	.value-box {
-		padding: 0.9rem 1rem;
-		border-radius: 0.75rem;
-		background: color-mix(in srgb, var(--roo-soft) 55%, var(--bg));
-		border: 1px solid var(--roo-line);
-	}
-	/* The Roo tag stuck on the poster's lower-left corner. */
+	/* The Roo tag stuck on the picture's lower-left corner. */
 	.sticker {
 		position: absolute;
 		z-index: 2;
-		left: -0.9rem;
-		bottom: -1.1rem;
-		font-size: 1.15rem;
+		left: 0.9rem;
+		bottom: 0.9rem;
+		font-size: 1.05rem;
 	}
-	.block-card {
-		padding: 1rem;
-		border-radius: 1.2rem;
-		background: var(--bg);
-		border: 1px solid var(--line);
+	.acc[open] :global(.chev) {
+		transform: rotate(180deg);
 	}
-	.label {
-		font-size: 0.72rem;
-		font-weight: 800;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--ink-2);
-	}
-	.status {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 0.25rem 0.6rem;
-		border-radius: 999px;
-		font-size: 0.75rem;
-		font-weight: 800;
-	}
-	.bank {
-		display: grid;
-		place-items: center;
-		min-width: 3.4rem;
-		height: 2.4rem;
-		padding: 0 0.5rem;
-		border-radius: 0.7rem;
-		background: var(--ink);
-		color: var(--bg);
-		font-size: 0.75rem;
-		font-weight: 800;
-	}
-	.terms {
-		border-top: 1px solid var(--line);
-		border-bottom: 1px solid var(--line);
-	}
-	.terms[open] :global(.chev) {
-		transform: rotate(90deg);
-	}
-	.terms :global(.chev) {
+	.acc :global(.chev) {
 		transition: transform 250ms var(--ease-out-expo);
 	}
 	.lightbox {
