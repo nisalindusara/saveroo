@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { cardValue } from '@saveroo/shared/deal-text';
+	import { cardValue, formatRs } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
 	import { imageSrcset, imageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
@@ -41,8 +41,12 @@
 	const fill = $derived(fillsFrame(deal));
 	const colours = $derived(posterColours(deal.merchant.name));
 	const banks = $derived(deal.providers.slice(0, 2).map(providerShortName).join(', ') + (deal.providers.length > 2 ? ` +${deal.providers.length - 2}` : ''));
-	// Without a coupon the value is the tan price line; with one, the purple line carries it.
-	const tanLine = $derived(!deal.couponCode || value.was || value.pill || value.note);
+	// The purple line: the price with the code when the deal gives one, otherwise the value itself.
+	const codePrice = $derived(deal.couponPrice !== null ? formatRs(deal.couponPrice) : null);
+	// Tan line: always without a coupon; with a coupon only when it adds something (old price, pill, cap,
+	// or the sale price before the code).
+	const showMain = $derived(!deal.couponCode || codePrice !== null);
+	const tanLine = $derived(showMain || value.was || value.pill || value.note);
 </script>
 
 <a
@@ -115,14 +119,14 @@
 	{#if tanLine}
 		<div class="mt-1.5 flex flex-wrap items-baseline gap-x-1.5">
 			{#if value.was}<span class="was line-through">{value.was}</span>{/if}
-			{#if !deal.couponCode}<span class="tan {value.was ? '' : 'solo'}">{value.main}</span>{/if}
+			{#if showMain}<span class="tan {value.was ? '' : 'solo'}">{value.main}</span>{/if}
 			{#if value.pill}<span class="pill">{value.pill}</span>{/if}
 			{#if value.note}<span class="note">{value.note}</span>{/if}
 		</div>
 	{/if}
 	{#if deal.couponCode}
 		<div class="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-promo">
-			<span class="code-price">{value.main}</span>
+			<span class="code-price">{codePrice ?? value.main}</span>
 			<span class="code-text">{t('pub.card.with_code', { code: deal.couponCode })}</span>
 		</div>
 	{/if}

@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(28);
 
 insert into public.merchants (id, slug, name, status) values
   ('00000000-0000-0000-0000-0000000000b1', 'scope-cinemas', 'Scope Cinemas', 'active'),
@@ -50,6 +50,26 @@ select is(
   (select card ->> 'couponCode' from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
   'MOVIE50', 'a card carries its first copy coupon code'
 );
+update public.coupon_codes set price_lkr = 4950 where code = 'MOVIE50';
+select is(
+  (select (card ->> 'couponPrice')::numeric from public.public_feed() where card ->> 'slug' = 'movie-tuesday'),
+  4950::numeric, 'a card carries the price with its coupon code'
+);
+insert into public.promotions (kind, title, sort_order, is_live, starts_at, ends_at) values
+  ('banner', 'Second slide', 2, true, now() - interval '1 day', null),
+  ('banner', 'First slide', 1, true, now() - interval '1 day', null),
+  ('banner', 'Hidden slide', 0, false, now() - interval '1 day', null),
+  ('banner', 'Ended slide', 0, true, now() - interval '3 days', now() - interval '1 day'),
+  ('strip', 'Strip text', 0, true, now() - interval '1 day', null);
+select is(
+  (select jsonb_agg(x ->> 'title') from jsonb_array_elements(public.public_promotions() -> 'banner') x),
+  '["First slide", "Second slide"]'::jsonb, 'promotions show only live, current entries, in order'
+);
+select is(public.public_promotions() -> 'strip' ->> 'title', 'Strip text', 'the strip is returned on its own');
+select ok(public.public_home(2) ? 'promotions' and public.public_home(2) ? 'featured', 'home includes promotions and featured deals');
+set local role anon;
+select is((select count(*)::int from public.promotions), 3, 'visitors can read live promotions only');
+reset role;
 select results_eq(
   $$ select card ->> 'slug' from public.public_feed(p_limit => 1) $$,
   $$ values ('popcorn-deal') $$,

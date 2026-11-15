@@ -15,6 +15,7 @@ History: M5 first had a "poster wall" (masonry, warm paper, orange), then a "sho
 - **Footer**: a white "Top deals by category" band with a "More categories" drawer, then a grey footer with the wordmark, tagline and links. No bottom bar on phones (the header carries search, categories and the account link).
 
 ## Home sections
+The strip, banner slides, story cards and brand circles come from the `promotions` table when it has entries (now: the reference's texts and pictures as test data); otherwise they are built from deal data.
 1. **Works today** (the reference's "Trending Deals"): title with a day pill; a sideways row (`Rail.svelte`) of 274 px deal cards.
 2. **Ending soon** (no heading, as in the reference): 274x265 story cards (`StoryCard.svelte`): poster filling the card, dark fade, title, underlined "→ Ends tomorrow · 50% off".
 3. **Featured deals** (grey panel, megaphone icon): 278 px white cards (`FeaturedCard.svelte`) with a "Featured" pill and the shop's logo box. When no deal is featured it shows **New this week** instead.

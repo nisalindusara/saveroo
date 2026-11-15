@@ -9,7 +9,8 @@
 		"typecheck": "wrangler types && tsc -p tsconfig.json",
 		"test": "vitest run",
 		"deploy:worker": "wrangler deploy",
-		"user:role": "node --env-file=.env scripts/set-role.mjs"
+		"user:role": "node --env-file=.env scripts/set-role.mjs",
+		"testdata:remove": "node --env-file=.env scripts/remove-test-data.mjs"
 	},
 	"dependencies": {
 		"@saveroo/shared": "workspace:*",

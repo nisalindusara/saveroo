@@ -18,7 +18,8 @@ Postgres on Supabase. Every table has `id uuid pk default gen_random_uuid()` and
 - **deal_branches:** deal_id, branch_id. No rows means all branches.
 - **deal_eligibility:** deal_id, provider_id fk, card_product_id fk null (null means any card of that provider), card_type null, note. No rows means open to everyone.
 - **deal_schedules:** deal_id, days_of_week int[] (1=Mon to 7=Sun), start_time null, end_time null, valid_from date null, valid_to date null, blackout_dates date[], note. No rows means every day between starts_at and ends_at.
-- **coupon_codes:** deal_id, code, kind enum(copy, show_qr, auto_apply), usage_limit null, used_count, valid_from, valid_to
+- **coupon_codes:** deal_id, code, kind enum(copy, show_qr, auto_apply), usage_limit null, used_count, valid_from, valid_to, price_lkr null (price when this code is used; added 2026-11-14)
+- **promotions** (added 2026-11-14, early part of R4 campaigns): kind enum(strip, banner, story, brand), title, subtitle, tag, body, highlight, code, button_label, link_url, image_url, image_ratio, box_top/middle/bottom, legal, sort_order, starts_at, ends_at, is_live. Written by the service role only (no admin screen yet); visitors read live, current entries.
 
 ## Users and personalization (R1)
 - **profiles:** id = auth user id, display_name, avatar_url, district, language default 'en', role enum(user, moderator, admin), onboarding_done, points default 0
@@ -62,6 +63,7 @@ R1 tables live in `supabase/migrations` (one file per area). Details beyond the 
 | categories, brands, providers, card_products | read | |
 | merchants, merchant_branches | read active ones | |
 | deals, deal_branches, deal_eligibility, deal_schedules, coupon_codes | read when the deal is live and its merchant is active | |
+| promotions | read when live and between starts_at and ends_at | |
 | profiles | | read; edit name, avatar, district, language, onboarding (never role or points) |
 | user_wallet, follows, saved_deals, reminders, notification_preferences, push_tokens, consents | | read, add, change, delete |
 | notifications | | read, mark read, delete |

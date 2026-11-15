@@ -26,6 +26,7 @@ Run from the repo root.
 - Local database (needs Docker Desktop running): `pnpm db:start` / `pnpm db:stop`; `pnpm db:reset` rebuilds it from the migrations and seed; `pnpm db:test` runs the database tests; `pnpm db:types` regenerates `packages/shared/src/database.types.ts` (run after every migration; CI fails if it is stale).
 - `pnpm deploy:api`, `pnpm deploy:web`: deploy to Cloudflare (needs `pnpm exec wrangler login` once).
 - `pnpm user:role <email> <user|moderator|admin>`: change a user's role in the Supabase project in `apps/api/.env` (they must have signed in once).
+- `pnpm testdata:remove`: delete the design test data (deals and merchants marked TEST DATA, all promotions, pictures under media/test/) from the Supabase project in `apps/api/.env`. Run before real users arrive.
 
 ## Rules
 - **Simplicity over cleverness.** One way to do each thing: one validation library (zod), one data-fetching pattern, one styling approach. Before adding a second way, stop and ask.

@@ -224,6 +224,7 @@ const en = {
 	'admin.coupon.show_qr': 'QR code',
 	'admin.coupon.auto_apply': 'Applied automatically',
 	'admin.coupon.limit': 'Use limit',
+	'admin.coupon.price': 'Price with code (LKR, optional)',
 	'admin.image.choose': 'Choose image',
 	'admin.image.replace': 'Replace',
 	'admin.image.uploading': 'Uploading…',

@@ -94,6 +94,7 @@ export function dealToRpcParts(d: DealData) {
 			code: c.code,
 			kind: c.kind,
 			usage_limit: c.usageLimit,
+			price_lkr: c.priceLkr,
 			valid_from: c.validFrom,
 			valid_to: c.validTo
 		}))
@@ -202,6 +203,7 @@ export function snapshotToDeal(s: Row, merchantName: string): AdminDeal {
 			code: String(c.code),
 			kind: c.kind as AdminDeal['coupons'][number]['kind'],
 			usageLimit: num(c.usage_limit),
+			priceLkr: num(c.price_lkr),
 			validFrom: iso(c.valid_from),
 			validTo: iso(c.valid_to)
 		}))

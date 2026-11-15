@@ -137,6 +137,8 @@ export const couponInputSchema = z.object({
 	code: z.string().trim().min(1, 'Required').max(64),
 	kind: couponKindSchema.default('copy'),
 	usageLimit: z.number().int().positive().nullish().transform((v) => v ?? null),
+	/** Price when this code is used ("Rs. 5,950 with code CEYLON"); optional. */
+	priceLkr: lkr.nullish().transform((v) => v ?? null),
 	validFrom: isoDateTime.nullish().transform((v) => v ?? null),
 	validTo: isoDateTime.nullish().transform((v) => v ?? null)
 });

@@ -4,11 +4,11 @@
 	its colour when there is no logo; each links to the shop's page.
 -->
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { imageUrl } from '@saveroo/shared/images';
 	import { posterColours } from '#lib/public/cards.js';
 
-	type Shop = { slug: string; name: string; logoKey: string | null };
+	/** A shop badge: `href` is a resolved path; `imageKey` fills the whole circle (brand promotions), `logoKey` sits inside it. */
+	type Shop = { key: string; name: string; href: string; logoKey: string | null; imageKey?: string | null };
 	let { shops, supabaseUrl }: { shops: Shop[]; supabaseUrl: string } = $props();
 
 	// Groups: one large shop, then up to four small ones, repeating.
@@ -25,14 +25,16 @@
 
 {#snippet circle(shop: Shop, big: boolean)}
 	{@const c = posterColours(shop.name)}
-	<a
-		href={resolve('/(site)/merchants/[slug]', { slug: shop.slug })}
+	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- callers pass resolved paths -->
+	<a href={shop.href}
 		title={shop.name}
-		class="bubble flex shrink-0 flex-col items-center justify-center overflow-hidden rounded-full text-center {big ? 'big' : 'small'}"
-		style:background={shop.logoKey ? '#fff' : c.bg}
+		class="bubble flex shrink-0 flex-col items-center justify-center overflow-hidden rounded-full text-center {big ? 'big' : 'small'} {shop.imageKey ? 'pic' : ''}"
+		style:background={shop.logoKey || shop.imageKey ? '#fff' : c.bg}
 		style:color={c.fg}
 	>
-		{#if shop.logoKey}
+		{#if shop.imageKey}
+			<img src={imageUrl(supabaseUrl, shop.imageKey, 320)} alt={shop.name} loading="lazy" class="h-full w-full scale-[1.04] object-cover" />
+		{:else if shop.logoKey}
 			<img src={imageUrl(supabaseUrl, shop.logoKey, 320)} alt={shop.name} loading="lazy" class="h-full w-full object-contain p-[14%]" />
 		{:else}
 			<span class="name font-black uppercase">{shop.name}</span>
@@ -45,7 +47,7 @@
 		{#if g.big}{@render circle(g.big, true)}{/if}
 		{#if g.small.length}
 			<div class="grid shrink-0 grid-cols-2 gap-1">
-				{#each g.small as s (s.slug)}{@render circle(s, false)}{/each}
+				{#each g.small as s (s.key)}{@render circle(s, false)}{/each}
 			</div>
 		{/if}
 	{/each}
@@ -84,6 +86,9 @@
 		padding: 0.35rem;
 		border-width: 1px;
 		border-color: #e5e7eb;
+	}
+	.pic {
+		padding: 0;
 	}
 	.name {
 		line-height: 1.05;

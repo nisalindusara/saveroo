@@ -1,41 +1,49 @@
 <!--
-	Tall "story" card (owner's reference design): the deal poster filling the card, a dark fade at the
-	bottom, the title, and an underlined arrow line with the urgency and saving. Used for Home's
-	"Ending soon" row.
+	Tall "story" card (owner's reference design): a picture filling the card, a dark fade at the bottom,
+	the title, and an underlined arrow line. Used on Home for story promotions, or for deals ending soon
+	when there are none (the page builds the title and line).
 -->
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { cardValue } from '@saveroo/shared/deal-text';
-	import { t } from '@saveroo/shared/i18n';
 	import { imageUrl } from '@saveroo/shared/images';
-	import type { PublicDealCard } from '@saveroo/shared';
-	import { endsWithin, posterColours } from '#lib/public/cards.js';
+	import { posterColours } from '#lib/public/cards.js';
 
-	let { deal, supabaseUrl, index = 0 }: { deal: PublicDealCard; supabaseUrl: string; index?: number } = $props();
-	const days = $derived(endsWithin(deal, 7));
-	const colours = $derived(posterColours(deal.merchant.name));
-	const urgency = $derived(
-		days === 0 ? t('pub.card.last_day') : days === 1 ? t('pub.card.ends_tomorrow') : days !== null ? t('pub.card.ends_in', { days }) : ''
-	);
+	let {
+		href,
+		title,
+		line,
+		imageKey,
+		seed,
+		supabaseUrl,
+		index = 0
+	}: {
+		/** Resolved site path or full address. */
+		href: string;
+		title: string;
+		line: string;
+		imageKey: string | null;
+		/** Picks the background colour when there is no picture. */
+		seed: string;
+		supabaseUrl: string;
+		index?: number;
+	} = $props();
+	const colours = $derived(posterColours(seed));
 </script>
 
-<a
-	href={resolve('/(site)/deals/[slug]', { slug: deal.slug })}
+<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- callers pass resolved paths -->
+<a {href}
 	class="story rise group relative block h-[265px] w-[274px] shrink-0 overflow-hidden rounded-2xl"
 	style:--i={Math.min(index, 10)}
 	style:background={colours.bg}
 >
-	{#if deal.imageKey}
-		<img src={imageUrl(supabaseUrl, deal.imageKey, 640)} alt="" loading="lazy" decoding="async" class="poster h-full w-full object-cover" />
+	{#if imageKey}
+		<img src={imageUrl(supabaseUrl, imageKey, 640)} alt="" loading="lazy" decoding="async" class="poster h-full w-full object-cover" />
 	{/if}
 	<div class="shade absolute inset-0"></div>
 	<div class="absolute inset-x-0 bottom-0 z-10 p-4 text-white">
-		<h3 class="line-clamp-2 text-[18.5px] leading-[1.2] font-extrabold tracking-[-0.01em]">{deal.title}</h3>
+		<h3 class="line-clamp-2 text-[18.5px] leading-[1.2] font-extrabold tracking-[-0.01em]">{title}</h3>
 		<p class="mt-1.5 flex items-start gap-2 text-[13.5px] leading-[1.35]">
 			<span class="mt-0.5 shrink-0 font-normal text-white/95" aria-hidden="true">→</span>
-			<span class="font-bold underline decoration-white/90 underline-offset-2 transition-colors group-hover:text-[#e5c194]">
-				{[urgency, cardValue(deal).main].filter(Boolean).join(' · ')}
-			</span>
+			<span class="font-bold underline decoration-white/90 underline-offset-2 transition-colors group-hover:text-[#e5c194]">{line}</span>
 		</p>
 	</div>
 </a>

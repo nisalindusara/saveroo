@@ -39,6 +39,8 @@ type DealBase = {
 	hasCoupon: boolean;
 	/** First copy-type coupon code, shown on the card ("with code PEAK50"). */
 	couponCode: string | null;
+	/** Price when that code is used, if the deal gives one. */
+	couponPrice: number | null;
 	/** Where it works: first branch city and branch count; null for online-only shops. */
 	place: { city: string; count: number } | null;
 };
@@ -110,12 +112,35 @@ export type PublicCategory = {
 
 export type PublicMerchantMatch = { slug: string; name: string; logoKey: string | null; liveDeals: number };
 
+/** A promotion entry (purple strip, Home banner slide, story card or brand circle). */
+export type PublicPromotion = {
+	id: string;
+	title: string;
+	subtitle: string | null;
+	tag: string | null;
+	body: string | null;
+	highlight: string | null;
+	code: string | null;
+	buttonLabel: string | null;
+	linkUrl: string | null;
+	imageKey: string | null;
+	imageRatio: number | null;
+	boxTop: string | null;
+	boxMiddle: string | null;
+	boxBottom: string | null;
+	legal: string | null;
+	endsAt: string | null;
+};
+
 export type PublicHome = {
 	/** Valid today (Colombo weekday), featured first. */
 	today: PublicDealCard[];
 	/** Ending within 7 days, soonest first. */
 	ending: PublicDealCard[];
 	counts: { live: number; today: number; merchants: number };
+	/** Featured deals (own panel on Home). */
+	featured: PublicDealCard[];
+	promotions: { strip: PublicPromotion | null; banner: PublicPromotion[]; story: PublicPromotion[]; brand: PublicPromotion[] };
 	/** First page of the newest deals. */
 	latest: PublicDealCard[];
 	latestCursor: string | null;

@@ -1,7 +1,8 @@
 <!--
 	Home banner on the black stage (owner's reference design): short slides with glowing "neon" words,
-	one line of copy, a pill button and a deal poster fading in on the right. Slides come from real data:
-	what works today, what ends soon, and a deal with a coupon code. Moves on every 7 seconds (paused on
+	one line of copy, a pill button and a picture fading in on the right. Slides are the banner
+	promotions; when there are none they are built from deal data (what works today, what ends soon,
+	a deal with a coupon code). Moves on every 7 seconds (paused on
 	hover, off when the device asks for less motion); arrows and dots to switch.
 -->
 <script lang="ts">
@@ -34,6 +35,23 @@
 	};
 
 	const slides = $derived.by(() => {
+		if (home.promotions.banner.length) {
+			return home.promotions.banner.map(
+				(p): Slide => ({
+					top: p.title,
+					bottom: p.subtitle ?? '',
+					tag: p.tag ?? '',
+					copy: p.body ?? '',
+					strong: p.highlight ?? '',
+					button: p.code ?? p.buttonLabel ?? t('pub.hero.see_them'),
+					href: p.linkUrl ?? '#today',
+					image: p.imageKey,
+					code: p.code !== null,
+					box: p.boxTop ? { top: p.boxTop, middle: p.boxMiddle ?? '', bottom: p.boxBottom ?? '' } : undefined,
+					legal: p.legal ?? ''
+				})
+			);
+		}
 		const list: Slide[] = [];
 		const best = Math.max(0, ...home.today.map((d) => (d.dealType === 'cashback' ? 0 : (d.discountPercent ?? 0))));
 		if (home.today.length) {

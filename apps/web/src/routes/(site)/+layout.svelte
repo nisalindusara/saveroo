@@ -18,10 +18,18 @@
 	// Home's data (only on Home) feeds the promo strip and the banner.
 	const home = $derived(page.route.id === '/(site)' ? (page.data.home as PublicHome | undefined) : undefined);
 	const dayName = $derived(t(`day.long.${data.today as 1}`));
+	// The strip: the strip promotion, or the next deal to end.
+	const strip = $derived.by(() => {
+		const p = home?.promotions.strip;
+		if (p) return { id: p.id, text: p.title, endsAt: p.endsAt, code: p.code, href: p.linkUrl ?? resolve('/(site)') };
+		const d = home?.ending[0];
+		if (d) return { id: d.id, text: t('pub.promo.text', { title: d.title, merchant: d.merchant.name }), endsAt: d.endsAt, code: d.couponCode, href: resolve('/(site)/deals/[slug]', { slug: d.slug }) };
+		return null;
+	});
 </script>
 
-{#if home?.ending[0]}
-	<PromoStrip deal={home.ending[0]} />
+{#if strip}
+	<PromoStrip {...strip} />
 {/if}
 
 <TopBar signedIn={data.user !== null} categories={data.navCategories} />

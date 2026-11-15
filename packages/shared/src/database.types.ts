@@ -103,14 +103,14 @@ isOneToOne: false
                   ]
                 },"coupon_codes": {
                   Row: {
-                    "code": string,"created_at": string,"deal_id": string,"id": string,"kind": Database["public"]['Enums']["coupon_kind"],"updated_at": string,"usage_limit": number | null,"used_count": number,"valid_from": string | null,"valid_to": string | null
+                    "code": string,"created_at": string,"deal_id": string,"id": string,"kind": Database["public"]['Enums']["coupon_kind"],"price_lkr": number | null,"updated_at": string,"usage_limit": number | null,"used_count": number,"valid_from": string | null,"valid_to": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "code": string,"created_at"?: string,"deal_id": string,"id"?: string,"kind"?: Database["public"]['Enums']["coupon_kind"],"updated_at"?: string,"usage_limit"?: number | null,"used_count"?: number,"valid_from"?: string | null,"valid_to"?: string | null
+                    "code": string,"created_at"?: string,"deal_id": string,"id"?: string,"kind"?: Database["public"]['Enums']["coupon_kind"],"price_lkr"?: number | null,"updated_at"?: string,"usage_limit"?: number | null,"used_count"?: number,"valid_from"?: string | null,"valid_to"?: string | null
                   }
                   Update: {
-                    "code"?: string,"created_at"?: string,"deal_id"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["coupon_kind"],"updated_at"?: string,"usage_limit"?: number | null,"used_count"?: number,"valid_from"?: string | null,"valid_to"?: string | null
+                    "code"?: string,"created_at"?: string,"deal_id"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["coupon_kind"],"price_lkr"?: number | null,"updated_at"?: string,"usage_limit"?: number | null,"used_count"?: number,"valid_from"?: string | null,"valid_to"?: string | null
                   }
                   Relationships: [
                     {
@@ -411,6 +411,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"promotions": {
+                  Row: {
+                    "body": string | null,"box_bottom": string | null,"box_middle": string | null,"box_top": string | null,"button_label": string | null,"code": string | null,"created_at": string,"ends_at": string | null,"highlight": string | null,"id": string,"image_ratio": number | null,"image_url": string | null,"is_live": boolean,"kind": Database["public"]['Enums']["promotion_kind"],"legal": string | null,"link_url": string | null,"sort_order": number,"starts_at": string,"subtitle": string | null,"tag": string | null,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body"?: string | null,"box_bottom"?: string | null,"box_middle"?: string | null,"box_top"?: string | null,"button_label"?: string | null,"code"?: string | null,"created_at"?: string,"ends_at"?: string | null,"highlight"?: string | null,"id"?: string,"image_ratio"?: number | null,"image_url"?: string | null,"is_live"?: boolean,"kind": Database["public"]['Enums']["promotion_kind"],"legal"?: string | null,"link_url"?: string | null,"sort_order"?: number,"starts_at"?: string,"subtitle"?: string | null,"tag"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "body"?: string | null,"box_bottom"?: string | null,"box_middle"?: string | null,"box_top"?: string | null,"button_label"?: string | null,"code"?: string | null,"created_at"?: string,"ends_at"?: string | null,"highlight"?: string | null,"id"?: string,"image_ratio"?: number | null,"image_url"?: string | null,"is_live"?: boolean,"kind"?: Database["public"]['Enums']["promotion_kind"],"legal"?: string | null,"link_url"?: string | null,"sort_order"?: number,"starts_at"?: string,"subtitle"?: string | null,"tag"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"providers": {
                   Row: {
                     "created_at": string,"id": string,"logo_url": string | null,"name": string,"slug": string,"type": Database["public"]['Enums']["provider_type"],"updated_at": string
@@ -607,6 +621,9 @@ isOneToOne: false
 "public_merchant":
 { Args: { "p_slug": string }; Returns: Json
                            },
+"public_promotions":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "public_search_deals":
 { Args: { "p_limit"?: number,"p_offset"?: number,"p_q": string }; Returns: {
               "card": Json,"score": number
@@ -622,7 +639,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "app_platform": "web"|"android"|"ios"|"extension","card_network": "visa"|"mastercard"|"amex"|"unionpay"|"local"|"none","card_type": "credit"|"debit"|"prepaid"|"loyalty"|"other","consent_kind": "notifications"|"location"|"analytics"|"marketing","coupon_kind": "copy"|"show_qr"|"auto_apply","deal_channel": "in_store"|"online"|"both","deal_origin": "admin"|"community"|"merchant","deal_status": "draft"|"pending"|"live"|"paused"|"expired"|"rejected","deal_type": "percent_off"|"amount_off"|"bogo"|"freebie"|"cashback"|"coupon_code"|"price_drop"|"bundle"|"other","deal_verification": "verified"|"community"|"unverified","delivery_status": "queued"|"sent"|"failed"|"skipped","digest_frequency": "instant"|"daily"|"weekly","follow_target": "merchant"|"brand"|"category"|"keyword"|"product","merchant_status": "active"|"hidden","notification_channel": "inapp"|"push"|"email"|"whatsapp","notification_type": "new_deal"|"reminder"|"expiring"|"system","provider_type": "bank"|"telco"|"wallet"|"loyalty"|"network","reminder_kind": "valid_day"|"expiry","user_role": "user"|"moderator"|"admin"
+            "app_platform": "web"|"android"|"ios"|"extension","card_network": "visa"|"mastercard"|"amex"|"unionpay"|"local"|"none","card_type": "credit"|"debit"|"prepaid"|"loyalty"|"other","consent_kind": "notifications"|"location"|"analytics"|"marketing","coupon_kind": "copy"|"show_qr"|"auto_apply","deal_channel": "in_store"|"online"|"both","deal_origin": "admin"|"community"|"merchant","deal_status": "draft"|"pending"|"live"|"paused"|"expired"|"rejected","deal_type": "percent_off"|"amount_off"|"bogo"|"freebie"|"cashback"|"coupon_code"|"price_drop"|"bundle"|"other","deal_verification": "verified"|"community"|"unverified","delivery_status": "queued"|"sent"|"failed"|"skipped","digest_frequency": "instant"|"daily"|"weekly","follow_target": "merchant"|"brand"|"category"|"keyword"|"product","merchant_status": "active"|"hidden","notification_channel": "inapp"|"push"|"email"|"whatsapp","notification_type": "new_deal"|"reminder"|"expiring"|"system","promotion_kind": "strip"|"banner"|"story"|"brand","provider_type": "bank"|"telco"|"wallet"|"loyalty"|"network","reminder_kind": "valid_day"|"expiry","user_role": "user"|"moderator"|"admin"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -738,7 +755,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "app_platform": ["web", "android", "ios", "extension"],"card_network": ["visa", "mastercard", "amex", "unionpay", "local", "none"],"card_type": ["credit", "debit", "prepaid", "loyalty", "other"],"consent_kind": ["notifications", "location", "analytics", "marketing"],"coupon_kind": ["copy", "show_qr", "auto_apply"],"deal_channel": ["in_store", "online", "both"],"deal_origin": ["admin", "community", "merchant"],"deal_status": ["draft", "pending", "live", "paused", "expired", "rejected"],"deal_type": ["percent_off", "amount_off", "bogo", "freebie", "cashback", "coupon_code", "price_drop", "bundle", "other"],"deal_verification": ["verified", "community", "unverified"],"delivery_status": ["queued", "sent", "failed", "skipped"],"digest_frequency": ["instant", "daily", "weekly"],"follow_target": ["merchant", "brand", "category", "keyword", "product"],"merchant_status": ["active", "hidden"],"notification_channel": ["inapp", "push", "email", "whatsapp"],"notification_type": ["new_deal", "reminder", "expiring", "system"],"provider_type": ["bank", "telco", "wallet", "loyalty", "network"],"reminder_kind": ["valid_day", "expiry"],"user_role": ["user", "moderator", "admin"]
+            "app_platform": ["web", "android", "ios", "extension"],"card_network": ["visa", "mastercard", "amex", "unionpay", "local", "none"],"card_type": ["credit", "debit", "prepaid", "loyalty", "other"],"consent_kind": ["notifications", "location", "analytics", "marketing"],"coupon_kind": ["copy", "show_qr", "auto_apply"],"deal_channel": ["in_store", "online", "both"],"deal_origin": ["admin", "community", "merchant"],"deal_status": ["draft", "pending", "live", "paused", "expired", "rejected"],"deal_type": ["percent_off", "amount_off", "bogo", "freebie", "cashback", "coupon_code", "price_drop", "bundle", "other"],"deal_verification": ["verified", "community", "unverified"],"delivery_status": ["queued", "sent", "failed", "skipped"],"digest_frequency": ["instant", "daily", "weekly"],"follow_target": ["merchant", "brand", "category", "keyword", "product"],"merchant_status": ["active", "hidden"],"notification_channel": ["inapp", "push", "email", "whatsapp"],"notification_type": ["new_deal", "reminder", "expiring", "system"],"promotion_kind": ["strip", "banner", "story", "brand"],"provider_type": ["bank", "telco", "wallet", "loyalty", "network"],"reminder_kind": ["valid_day", "expiry"],"user_role": ["user", "moderator", "admin"]
           }
         }
 } as const

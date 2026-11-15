@@ -75,7 +75,7 @@
 		}))
 	);
 	let coupons = $state(
-		(d?.coupons ?? []).map((c) => ({ code: c.code, kind: c.kind, usageLimit: str(c.usageLimit), validFrom: local(c.validFrom), validTo: local(c.validTo) }))
+		(d?.coupons ?? []).map((c) => ({ code: c.code, kind: c.kind, usageLimit: str(c.usageLimit), priceLkr: str(c.priceLkr), validFrom: local(c.validFrom), validTo: local(c.validTo) }))
 	);
 
 	/** Saving fields that apply to the chosen deal type (others are hidden and not sent). */
@@ -139,6 +139,7 @@
 				code: c.code,
 				kind: c.kind,
 				usageLimit: toNumber(c.usageLimit),
+				priceLkr: toNumber(c.priceLkr),
 				validFrom: toUtc(c.validFrom),
 				validTo: toUtc(c.validTo)
 			}))
@@ -374,6 +375,10 @@
 					<span class="block">{t('admin.coupon.limit')}</span>
 					<input class="{small} w-24" inputmode="numeric" bind:value={coupon.usageLimit} />
 				</label>
+				<label class="text-sm">
+					<span class="block">{t('admin.coupon.price')}</span>
+					<input class="{small} w-32" inputmode="decimal" bind:value={coupon.priceLkr} />
+				</label>
 				<button type="button" class="text-sm underline" onclick={() => coupons.splice(i, 1)}>{t('admin.remove')}</button>
 				{#if fields[`coupons.${i}.code`]}<p class="w-full text-sm text-red-700">{fields[`coupons.${i}.code`]}</p>{/if}
 			</div>
@@ -381,7 +386,7 @@
 		<button
 			type="button"
 			class="rounded-lg border px-3 py-1.5 text-sm"
-			onclick={() => coupons.push({ code: '', kind: 'copy', usageLimit: '', validFrom: '', validTo: '' })}
+			onclick={() => coupons.push({ code: '', kind: 'copy', usageLimit: '', priceLkr: '', validFrom: '', validTo: '' })}
 		>
 			{t('admin.coupon.add')}
 		</button>

@@ -1,20 +1,24 @@
 <!--
-	Purple strip above the header on Home (owner's reference design): the next deal to end, a live
-	countdown to its end, and a button with its coupon code (or "See deal"). Can be closed for the visit.
-	Built from real deal data only; hidden when nothing ends within a week.
+	Purple strip above the header on Home (owner's reference design): a line of text, a live countdown
+	to its end and a button ("Use Code X" or "See deal"). Filled by the (site) layout from the strip
+	promotion, or from the next deal to end when there is none. Can be closed for the visit.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { t } from '@saveroo/shared/i18n';
-	import type { PublicDealCard } from '@saveroo/shared';
 	import Icon from './Icon.svelte';
 
-	let { deal }: { deal: PublicDealCard } = $props();
+	let {
+		id,
+		text,
+		endsAt,
+		code,
+		href
+	}: { id: string; text: string; endsAt: string | null; code: string | null; href: string } = $props();
 	let closed = $state(false);
 	let now = $state(Date.now());
 
-	const left = $derived(Math.max(0, new Date(deal.endsAt ?? 0).getTime() - now));
+	const left = $derived(Math.max(0, new Date(endsAt ?? 0).getTime() - now));
 	const countdown = $derived.by(() => {
 		const s = Math.floor(left / 1000);
 		const hours = Math.floor(s / 3600);
@@ -25,7 +29,7 @@
 
 	onMount(() => {
 		try {
-			closed = sessionStorage.getItem('promo-closed') === deal.id;
+			closed = sessionStorage.getItem('promo-closed') === id;
 		} catch {
 			// Storage blocked: the strip just shows again.
 		}
@@ -36,7 +40,7 @@
 	function close() {
 		closed = true;
 		try {
-			sessionStorage.setItem('promo-closed', deal.id);
+			sessionStorage.setItem('promo-closed', id);
 		} catch {
 			// Storage blocked: closed for this page view only.
 		}
@@ -47,18 +51,20 @@
 	<div class="strip relative flex min-h-[54px] items-center justify-center px-4 py-2 text-white">
 		<div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-6 gap-y-1.5 pr-9 sm:pr-0">
 			<span class="text-center text-[0.86rem] font-bold tracking-[-0.01em] sm:text-[0.94rem]">
-				{t('pub.promo.text', { title: deal.title, merchant: deal.merchant.name })}
+				{text}
 			</span>
 			<div class="flex items-center gap-4">
-				<div class="flex flex-col leading-[1.15]">
-					<span class="text-[0.72rem] text-white/95">{t('pub.promo.ends_in')}</span>
-					<span class="text-[0.82rem] font-extrabold tracking-tight tabular-nums">{countdown}</span>
-				</div>
-				<a
-					href={resolve('/(site)/deals/[slug]', { slug: deal.slug })}
+				{#if endsAt}
+					<div class="flex flex-col leading-[1.15]">
+						<span class="text-[0.72rem] text-white/95">{t('pub.promo.ends_in')}</span>
+						<span class="text-[0.82rem] font-extrabold tracking-tight tabular-nums">{countdown}</span>
+					</div>
+				{/if}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- the layout passes a resolved path -->
+				<a {href}
 					class="press rounded-full bg-[#eff1f4] px-4 py-1.5 text-[0.82rem] font-semibold whitespace-nowrap text-[#111827] hover:bg-white"
 				>
-					{deal.couponCode ? t('pub.promo.use_code', { code: deal.couponCode }) : t('pub.promo.see_deal')}
+					{code ? t('pub.promo.use_code', { code }) : t('pub.promo.see_deal')}
 				</a>
 			</div>
 		</div>

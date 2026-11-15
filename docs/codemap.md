@@ -54,6 +54,7 @@ Status: M5 public web pages (owner's reference design) on top of the M4 public A
 - `apps/api/src/admin/import.ts`: CSV deal import (`rowToDeal`, all rows checked, one database call)
 - `apps/api/src/admin/mappers.ts`: API shapes <-> database rows and function arguments
 - `apps/api/scripts/set-role.mjs`: `pnpm user:role <email> <role>`, changes a user's role and logs it
+- `apps/api/scripts/remove-test-data.mjs`: `pnpm testdata:remove`, deletes the design test data (asks first)
 - `apps/web/src/env.ts`: web env vars (API URL, Supabase URL and publishable key), validated with zod at start; read via `$app/env/private`
 - `apps/web/src/hooks.server.ts`: per-request Supabase client (login cookies) and `locals.getSession()`
 - `apps/web/src/lib/server/api.ts`: `apiFetch` / `apiCall`, the only way web server code calls the API (service binding when deployed, plain fetch in dev)

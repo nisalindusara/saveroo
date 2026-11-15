@@ -16,6 +16,8 @@
 	import Section from '#lib/components/public/Section.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
 	import StoryCard from '#lib/components/public/StoryCard.svelte';
+	import { cardValue } from '@saveroo/shared/deal-text';
+	import { endsWithin } from '#lib/public/cards.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -23,20 +25,33 @@
 	const dayName = $derived(t(`day.long.${data.today as 1}`));
 	const all = $derived([...home.today, ...home.ending, ...home.latest]);
 
-	// Featured deals; when none are featured, the newest deals of the past week instead.
+	// Featured deals (from the database); when none are featured, the newest deals of the past week.
 	const featured = $derived.by(() => {
-		const unique = all.filter((d, i) => all.findIndex((x) => x.id === d.id) === i);
-		const picked = unique.filter((d) => d.isFeatured);
-		if (picked.length) return { title: t('pub.home.featured'), label: t('pub.home.featured_label'), deals: picked.slice(0, 10) };
+		if (home.featured.length) return { title: t('pub.home.featured'), label: t('pub.home.featured_label'), deals: home.featured.slice(0, 10) };
 		const weekAgo = Date.now() - 7 * 86_400_000;
 		const fresh = home.latest.filter((d) => new Date(d.startsAt).getTime() >= weekAgo);
 		return { title: t('pub.home.new_week'), label: t('pub.home.new_label'), deals: fresh.slice(0, 10) };
 	});
 
-	// Every shop with a deal on this page, once.
-	const shops = $derived.by(() => {
-		return all.filter((d, i) => all.findIndex((x) => x.merchant.slug === d.merchant.slug) === i).map((d) => d.merchant);
-	});
+	// Story cards: the story promotions, or the deals ending soon.
+	const stories = $derived(
+		home.promotions.story.length
+			? home.promotions.story.map((p) => ({ key: p.id, href: p.linkUrl ?? resolve('/(site)'), title: p.title, line: p.body ?? '', imageKey: p.imageKey, seed: p.title }))
+			: home.ending.map((d) => {
+					const days = endsWithin(d, 7);
+					const urgency = days === 0 ? t('pub.card.last_day') : days === 1 ? t('pub.card.ends_tomorrow') : days !== null ? t('pub.card.ends_in', { days }) : '';
+					return { key: d.id, href: resolve('/(site)/deals/[slug]', { slug: d.slug }), title: d.title, line: [urgency, cardValue(d).main].filter(Boolean).join(' · '), imageKey: d.imageKey, seed: d.merchant.name };
+				})
+	);
+
+	// Brand circles: the brand promotions, or every shop with a deal on this page, once.
+	const shops = $derived(
+		home.promotions.brand.length
+			? home.promotions.brand.map((p) => ({ key: p.id, name: p.title, href: p.linkUrl ?? resolve('/(site)/search'), logoKey: null, imageKey: p.imageKey }))
+			: all
+					.filter((d, i) => all.findIndex((x) => x.merchant.slug === d.merchant.slug) === i)
+					.map((d) => ({ key: d.merchant.slug, name: d.merchant.name, href: resolve('/(site)/merchants/[slug]', { slug: d.merchant.slug }), logoKey: d.merchant.logoKey }))
+	);
 </script>
 
 <Seo
@@ -64,11 +79,11 @@
 	</Section>
 {/if}
 
-{#if home.ending.length}
+{#if stories.length}
 	<Section id="ending">
 		<Rail arrowTop="132px">
-			{#each home.ending as deal, i (deal.id)}
-				<StoryCard {deal} supabaseUrl={data.supabaseUrl} index={i} />
+			{#each stories as story, i (story.key)}
+				<StoryCard href={story.href} title={story.title} line={story.line} imageKey={story.imageKey} seed={story.seed} supabaseUrl={data.supabaseUrl} index={i} />
 			{/each}
 		</Rail>
 	</Section>
