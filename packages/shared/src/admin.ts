@@ -42,6 +42,15 @@ export const imageKeySchema = z
 	.nullish()
 	.transform((v) => v ?? null);
 
+/** Most photos a deal can have. */
+export const MAX_DEAL_IMAGES = 10;
+
+/** One deal photo: its key and width / height (measured by the admin uploader). */
+export const dealImageSchema = z.object({
+	key: z.string().regex(/^deals\/[a-z0-9-]{1,64}\/[a-z0-9]{8,32}$/, 'Not an uploaded image'),
+	ratio: z.number().min(0.2).max(5).nullish().transform((v) => v ?? null)
+});
+
 export const merchantStatusSchema = z.enum(['active', 'hidden']);
 export const dealTypeSchema = z.enum([
 	'percent_off',
@@ -192,9 +201,8 @@ export const dealInputSchema = z
 		channel: dealChannelSchema.default('in_store'),
 		sourceUrl: url,
 		proofImageKey: imageKeySchema,
-		imageKey: imageKeySchema,
-		/** Width / height of the deal image, measured by the admin uploader. */
-		imageRatio: z.number().min(0.2).max(5).nullish().transform((v) => v ?? null),
+		/** Photos in order (the first is the cover on cards and share previews). */
+		images: z.array(dealImageSchema).max(MAX_DEAL_IMAGES, `At most ${MAX_DEAL_IMAGES} photos`).default([]),
 		affiliateUrl: url,
 		verification: dealVerificationSchema.default('unverified'),
 		startsAt: isoDateTime,

@@ -62,3 +62,28 @@ export function formatColombo(iso: string): string {
 		hour12: false
 	}).format(new Date(iso));
 }
+
+/** Colombo calendar date of a moment, as "YYYY-MM-DD". */
+export function colomboDate(at: Date | string = new Date()): string {
+	const d = new Date(new Date(at).getTime() + OFFSET_MINUTES * 60_000);
+	return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+/** The next `count` Colombo calendar days starting today: date, weekday (1 = Mon .. 7 = Sun), day of month, short month. */
+export function colomboUpcomingDays(
+	count: number,
+	now: Date = new Date()
+): { date: string; dow: number; day: number; month: string }[] {
+	const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+	const start = new Date(now.getTime() + OFFSET_MINUTES * 60_000);
+	return Array.from({ length: count }, (_, i) => {
+		const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate() + i));
+		const dow = d.getUTCDay();
+		return {
+			date: `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`,
+			dow: dow === 0 ? 7 : dow,
+			day: d.getUTCDate(),
+			month: months[d.getUTCMonth()]!
+		};
+	});
+}

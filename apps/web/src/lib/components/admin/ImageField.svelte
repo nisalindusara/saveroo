@@ -1,12 +1,13 @@
 <!--
 	Image picker for admin forms: resizes in the browser, uploads, shows a preview and keeps the image key
 	in `value` and its width/height in `ratio` (both bindable). With `share`, also uploads the WhatsApp/Facebook
-	preview. Used for merchant logo and cover, and deal image and proof.
+	preview. Used for merchant logo and cover, and the deal proof image (deal photos use DealImages).
 -->
 <script lang="ts">
 	import { t } from '@saveroo/shared/i18n';
 	import { imageUrl } from '@saveroo/shared/images';
-	import { ResizeError, prepareImage } from '#lib/admin/resize-image.js';
+	import { ResizeError } from '#lib/admin/resize-image.js';
+	import { uploadImage } from '#lib/admin/upload-image.js';
 
 	let {
 		label,
@@ -37,16 +38,9 @@
 		busy = true;
 		message = null;
 		try {
-			const prepared = await prepareImage(file, { share });
-			const form = new FormData();
-			form.set('kind', kind);
-			for (const [width, blob] of Object.entries(prepared.sizes)) form.set(`w${width}`, blob, `w${width}.webp`);
-			if (prepared.share) form.set('share', prepared.share, 'share.jpg');
-			const res = await fetch('/admin/images', { method: 'POST', body: form });
-			const body = (await res.json()) as { data: { key: string } | null; error: { message: string } | null };
-			if (!body.data) throw new Error(body.error?.message ?? t('admin.image.failed'));
-			value = body.data.key;
-			ratio = prepared.ratio;
+			const uploaded = await uploadImage(file, kind, share);
+			value = uploaded.key;
+			ratio = uploaded.ratio;
 		} catch (e) {
 			message = e instanceof ResizeError || e instanceof Error ? e.message : t('admin.image.failed');
 		} finally {

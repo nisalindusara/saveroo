@@ -3,7 +3,7 @@
 -- Run with `pnpm db:test` and in CI.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(33);
 
 -- An admin user (profile comes from the sign-up trigger).
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ad', 'admin@test.saveroo');
@@ -168,6 +168,24 @@ select ok(
 select ok(
   (select public from storage.buckets where id = 'media'),
   'the public media bucket exists'
+);
+
+-- Photos: saved in order, the first becomes the cover; more than 10 is refused.
+select public.admin_save_deal(null,
+  (select to_jsonb(d) from public.deals d where id = (select id from t where key = 'deal'))
+    || jsonb_build_object('images', '[{"image_url": "deals/2026-11/aaaaaaaa1", "image_ratio": 0.8}, {"image_url": "deals/2026-11/bbbbbbbb2", "image_ratio": 1.5}]'::jsonb),
+  array[(select id from public.merchant_branches where name = 'Galle')], '[]', '[]', '[]');
+select is((select array_agg(image_url order by sort_order) from public.deal_images where deal_id = (select id from t where key = 'deal')),
+  array['deals/2026-11/aaaaaaaa1', 'deals/2026-11/bbbbbbbb2'], 'photos are saved in order');
+select is((select image_url from public.deals where id = (select id from t where key = 'deal')),
+  'deals/2026-11/aaaaaaaa1', 'the first photo is the cover');
+select ok((public.deal_snapshot((select id from t where key = 'deal')) -> 'images') @> '[{"image_url": "deals/2026-11/bbbbbbbb2"}]',
+  'the audit snapshot includes the photos');
+select throws_ok(
+  format($$ select public.admin_save_deal(null, %L, '{}', '[]', '[]', '[]') $$,
+    (select to_jsonb(d) from public.deals d where id = (select id from t where key = 'deal'))
+      || jsonb_build_object('images', (select jsonb_agg(jsonb_build_object('image_url', 'deals/2026-11/cccccccc' || g)) from generate_series(1, 11) g))),
+  '22023', 'too_many_images', 'more than 10 photos are refused'
 );
 
 select * from finish();

@@ -21,8 +21,13 @@
 </div>
 
 <article class="mx-auto max-w-sm overflow-hidden rounded-2xl border shadow-sm">
-	{#if deal.imageKey}
-		<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" class="aspect-video w-full object-cover" />
+	{#if deal.images[0]}
+		<img src={imageUrl(data.supabaseUrl, deal.images[0].key, 640)} alt="" class="aspect-video w-full object-cover" />
+		{#if deal.images.length > 1}
+			<div class="flex gap-1 overflow-x-auto p-1">
+				{#each deal.images.slice(1) as image (image.key)}<img src={imageUrl(data.supabaseUrl, image.key, 320)} alt="" class="h-14 w-20 shrink-0 rounded object-cover" />{/each}
+			</div>
+		{/if}
 	{/if}
 	<div class="space-y-3 p-4">
 		<p class="text-sm text-gray-600">{data.merchant.name}</p>

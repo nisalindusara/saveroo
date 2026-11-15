@@ -19,6 +19,7 @@ Postgres on Supabase. Every table has `id uuid pk default gen_random_uuid()` and
 - **deal_eligibility:** deal_id, provider_id fk, card_product_id fk null (null means any card of that provider), card_type null, note. No rows means open to everyone.
 - **deal_schedules:** deal_id, days_of_week int[] (1=Mon to 7=Sun), start_time null, end_time null, valid_from date null, valid_to date null, blackout_dates date[], note. No rows means every day between starts_at and ends_at.
 - **coupon_codes:** deal_id, code, kind enum(copy, show_qr, auto_apply), usage_limit null, used_count, valid_from, valid_to, price_lkr null (price when this code is used; added 2026-11-14)
+- **deal_images** (added 2026-11-15): deal_id, image_url (image key), image_ratio, sort_order 0-9; up to 10 photos per deal, in order. The first is the cover and is copied to deals.image_url / image_ratio (cards, share preview). Saved through admin_save_deal ("images" in p_deal). Read when the deal is live.
 - **promotions** (added 2026-11-14, early part of R4 campaigns): kind enum(strip, banner, story, brand), title, subtitle, tag, body, highlight, code, button_label, link_url, image_url, image_ratio, box_top/middle/bottom, legal, sort_order, starts_at, ends_at, is_live. Written by the service role only (no admin screen yet); visitors read live, current entries.
 
 ## Users and personalization (R1)

@@ -179,6 +179,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"deal_images": {
+                  Row: {
+                    "created_at": string,"deal_id": string,"id": string,"image_ratio": number | null,"image_url": string,"sort_order": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"deal_id": string,"id"?: string,"image_ratio"?: number | null,"image_url": string,"sort_order"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"deal_id"?: string,"id"?: string,"image_ratio"?: number | null,"image_url"?: string,"sort_order"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "deal_images_deal_id_fkey"
+      columns: ["deal_id"]
+isOneToOne: false
+      referencedRelation: "deals"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"deal_schedules": {
                   Row: {
                     "blackout_dates": (string)[],"created_at": string,"days_of_week": (number)[],"deal_id": string,"end_time": string | null,"id": string,"note": string | null,"start_time": string | null,"updated_at": string,"valid_from": string | null,"valid_to": string | null

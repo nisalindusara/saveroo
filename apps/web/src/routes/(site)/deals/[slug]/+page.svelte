@@ -1,28 +1,27 @@
 <!--
-	Deal page (layout after the owner's deal-page screenshot): breadcrumbs; shop, title, place, valid days
-	and last check, with the price lines and main action on the right; the poster (never cropped, over a
-	blurred copy; tap for full screen) with share and the Roo tag; "This offer" card (valid days, cards,
+	Deal page (layout after the owner's deal-page screenshot): breadcrumbs; photos on the left (DealGallery:
+	one photo at its own shape, or several with thumbnails, swipe and a full-screen viewer) and on the right
+	shop, title, place, last check, the dates summary, price lines, main action and sharing; "This offer" card (valid days, cards,
 	coupon, price, end date, main action); about, how to use it, "Need to know" and "About the shop"
 	sections; a right column with where to use it and sharing; then more from the shop, similar deals and
 	category chips. Phones get a bottom bar with the main action, WhatsApp and share.
 -->
 <script lang="ts">
-	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { cardValue, daysText, formatRs, savingText } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
-	import { imageSrcset, imageUrl, shareImageUrl } from '@saveroo/shared/images';
+	import { imageUrl, shareImageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
 	import { colomboDaysUntil, formatColomboDate } from '@saveroo/shared/time';
 	import CouponTicket from '#lib/components/public/CouponTicket.svelte';
+	import DealDates from '#lib/components/public/DealDates.svelte';
+	import DealGallery from '#lib/components/public/DealGallery.svelte';
 	import DealCard from '#lib/components/public/DealCard.svelte';
 	import ExternalLink from '#lib/components/public/ExternalLink.svelte';
 	import Icon from '#lib/components/public/Icon.svelte';
 	import Rail from '#lib/components/public/Rail.svelte';
-	import RooTag from '#lib/components/public/RooTag.svelte';
 	import Seo from '#lib/components/public/Seo.svelte';
-	import WeekStrip from '#lib/components/public/WeekStrip.svelte';
 	import { endsWithin, posterColours, validOn } from '#lib/public/cards.js';
 	import { nativeShare, whatsappUrl } from '#lib/public/share.js';
 	import type { PageProps } from './$types';
@@ -44,7 +43,7 @@
 	const shareText = $derived(`${deal.title} · ${deal.merchant.name} (${saving})`);
 	const shareImage = $derived(deal.imageKey && deal.imageRatio ? shareImageUrl(data.supabaseUrl, deal.imageKey) : undefined);
 	const times = $derived(deal.schedules.find((s) => s.startTime));
-	const blackout = $derived(deal.schedules.flatMap((s) => s.blackoutDates));
+	const blackout = $derived(deal.schedules.flatMap((s) => s.blackoutDates.map((d) => d.slice(0, 10))));
 	const description = $derived(
 		[
 			`${saving} ${t('pub.deal.at')} ${deal.merchant.name}.`,
@@ -84,14 +83,6 @@
 		} catch {
 			// Clipboard blocked: the code is also shown on the page to copy by hand.
 		}
-	}
-	let lightbox = $state<HTMLDialogElement>();
-	let cameFromSite = $state(false);
-	afterNavigate(({ from }) => (cameFromSite = from !== null));
-
-	function back() {
-		if (cameFromSite) history.back();
-		else goto(resolve('/(site)'));
 	}
 
 	async function share() {
@@ -137,48 +128,49 @@
 		<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="hover:underline">{deal.merchant.name}</a>
 	</nav>
 
-	<!-- Title row: shop, title, place and facts on the left; price and main action on the right -->
-	<div class="mt-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-10">
+	<!-- Top: photos on the left (never full width), summary on the right -->
+	<div class="mt-3 grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-9">
+		<div class="min-w-0">
+			{#if deal.images.length}
+				<DealGallery images={deal.images} title={deal.title} dealId={deal.id} supabaseUrl={data.supabaseUrl} onshare={share} />
+			{:else}
+				<div class="flex aspect-[4/3] flex-col justify-end rounded-xl p-6" style:background={colours.bg} style:color={colours.fg} style:view-transition-name="deal-{deal.id}">
+					<span class="text-sm font-bold tracking-wider uppercase">{deal.merchant.name}</span>
+					<span class="text-4xl leading-tight font-black">{value.main}</span>
+				</div>
+			{/if}
+		</div>
+
 		<div class="min-w-0">
 			<a href={resolve('/(site)/merchants/[slug]', { slug: deal.merchant.slug })} class="text-[14px] text-ink-2 hover:underline">{deal.merchant.name}</a>
-			<h1 class="mt-0.5 text-[1.6rem] leading-[1.2] font-extrabold tracking-[-0.02em] text-ink md:text-[2rem]">{deal.title}</h1>
+			<h1 class="mt-0.5 text-[1.6rem] leading-[1.2] font-extrabold tracking-[-0.02em] text-ink md:text-[1.9rem]">{deal.title}</h1>
 			<p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-ink-2">
 				{#if deal.place}
 					<a href="#where" class="flex items-center gap-1 underline underline-offset-2"><Icon name="pin" size={15} stroke={2} />{deal.place.city}{deal.place.count > 1 ? ` · ${t('pub.card.locations', { count: deal.place.count })}` : ''}</a>
 				{:else}
 					<span class="flex items-center gap-1"><Icon name="globe" size={15} stroke={2} />{t('pub.card.online')}</span>
 				{/if}
-				<span class="flex items-center gap-1.5"><WeekStrip days={deal.validDays} today={data.today} />{today ? t('pub.deal.works_today') : t('pub.deal.not_today')}</span>
 				{#if checkedDays !== null}<span class="flex items-center gap-1 {deal.verification === 'verified' ? 'text-leaf' : ''}"><Icon name="shield" size={15} stroke={2} />{checkedDays === 0 ? t('pub.deal.checked_today') : t('pub.deal.checked_days', { days: checkedDays })}</span>{/if}
 			</p>
-		</div>
-		<div class="hidden shrink-0 text-right md:block">
-			{@render priceLines('lg')}
-			<div class="mt-3 flex justify-end">{@render mainAction()}</div>
-		</div>
-	</div>
 
-	<!-- Picture -->
-	<div class="gallery relative mt-5 overflow-hidden rounded-xl bg-surface-2" style:view-transition-name="deal-{deal.id}">
-		{#if deal.imageKey}
-			<img src={imageUrl(data.supabaseUrl, deal.imageKey, 640)} alt="" aria-hidden="true" class="backdrop" />
-			<button type="button" class="relative block h-full w-full cursor-zoom-in" onclick={() => lightbox?.showModal()} aria-label={t('pub.deal.zoom')}>
-				<img src={imageUrl(data.supabaseUrl, deal.imageKey, 1280)} srcset={imageSrcset(data.supabaseUrl, deal.imageKey)} sizes="(min-width: 1180px) 1120px, 94vw" alt={deal.title} fetchpriority="high" class="h-full w-full object-contain" />
-			</button>
-		{:else}
-			<div class="flex h-full flex-col justify-end p-6" style:background={colours.bg} style:color={colours.fg}>
-				<span class="text-sm font-bold tracking-wider uppercase">{deal.merchant.name}</span>
-				<span class="text-4xl leading-tight font-black">{value.main}</span>
+			<div class="mt-4 border-t border-line pt-4">
+				<DealDates validDays={deal.validDays} startsAt={deal.startsAt} endsAt={deal.endsAt} {blackout} compact />
 			</div>
-		{/if}
-		<div class="absolute top-3 right-3 z-10 flex gap-2">
-			{#if cameFromSite}<button class="round md:hidden" onclick={back} aria-label={t('pub.back')}><Icon name="back" size={19} stroke={2.2} /></button>{/if}
-			<button class="round" onclick={share} aria-label={t('pub.deal.share')}><Icon name="share" size={18} stroke={2.2} /></button>
+
+			<div class="mt-4 rounded-xl border border-roo-line bg-[color-mix(in_srgb,var(--roo-soft)_45%,var(--bg))] p-4">
+				{@render priceLines('md')}
+				{#if conditions.length}<p class="mt-1 text-[13px] text-ink-2">{conditions.join(' · ')}</p>{/if}
+				<div class="mt-3 hidden md:flex">{@render mainAction()}</div>
+			</div>
+			<div class="mt-3 hidden gap-2 md:flex">
+				<ExternalLink href={whatsappUrl(shareText, page.url.href)} class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2">
+					<Icon name="whatsapp" size={17} stroke={2} class="text-[#0f7f43]" />{t('pub.deal.share_whatsapp')}
+				</ExternalLink>
+				<button class="press flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-surface-2" onclick={share}>
+					<Icon name="share" size={16} stroke={2.2} />{t('pub.deal.share')}
+				</button>
+			</div>
 		</div>
-		{#if deal.imageKey}
-			<button class="absolute right-3 bottom-3 z-10 rounded-lg bg-black/65 px-3 py-1.5 text-[12px] font-semibold text-white" onclick={() => lightbox?.showModal()}>{t('pub.deal.see_poster')}</button>
-		{/if}
-		<span class="sticker"><RooTag {deal} /></span>
 	</div>
 
 	<!-- Two columns: the offer and its details; where to use it -->
@@ -189,8 +181,9 @@
 				{#if today}<span class="mb-2 inline-block rounded border border-roo px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-roo-ink uppercase">{t('pub.deal.works_today')}</span>{/if}
 				<p class="text-[16px] font-bold">{deal.title}</p>
 
-				<div class="mt-3 rounded-lg bg-leaf-soft px-3 py-2 text-[13px] text-leaf">
-					<span class="flex items-center gap-2 font-semibold"><Icon name="calendar" size={15} stroke={2.2} />{deal.validDays.length ? t('pub.valid_on', { days: daysText(deal.validDays) }) : t('pub.deal.every_day')}{#if times}{` · ${t('pub.deal.hours', { from: times.startTime ?? '', to: times.endTime ?? '' })}`}{/if}</span>
+				<div class="mt-3">
+					<DealDates validDays={deal.validDays} startsAt={deal.startsAt} endsAt={deal.endsAt} {blackout} />
+					{#if times}<p class="mt-2 flex items-center gap-1.5 text-[13px] text-ink-2"><Icon name="clock" size={14} stroke={2} />{t('pub.deal.hours', { from: times.startTime ?? '', to: times.endTime ?? '' })}</p>{/if}
 				</div>
 
 				<p class="mt-4 text-[14px] font-bold">{t('pub.deal.cards')}</p>
@@ -389,83 +382,13 @@
 	</div>
 </div>
 
-{#if deal.imageKey}
-	<dialog bind:this={lightbox} class="lightbox" onclick={() => lightbox?.close()} aria-label={deal.title}>
-		<img src={imageUrl(data.supabaseUrl, deal.imageKey, 1280)} alt={deal.title} />
-		<button class="round absolute top-4 right-4" aria-label={t('pub.close')}><Icon name="x" size={20} stroke={2.4} /></button>
-	</dialog>
-{/if}
+
 
 <style>
-	.gallery {
-		height: clamp(15rem, 56vw, 26rem);
-	}
-	.backdrop {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		filter: blur(36px) saturate(1.3);
-		transform: scale(1.3);
-		opacity: 0.7;
-	}
-	.round {
-		display: grid;
-		place-items: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 50%;
-		background: rgb(255 255 255 / 0.9);
-		color: #191c1f;
-		box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
-	}
-	/* The Roo tag stuck on the picture's lower-left corner. */
-	.sticker {
-		position: absolute;
-		z-index: 2;
-		left: 0.9rem;
-		bottom: 0.9rem;
-		font-size: 1.05rem;
-	}
 	.acc[open] :global(.chev) {
 		transform: rotate(180deg);
 	}
 	.acc :global(.chev) {
 		transition: transform 250ms var(--ease-out-expo);
-	}
-	.lightbox {
-		width: 100vw;
-		height: 100dvh;
-		max-width: none;
-		max-height: none;
-		margin: 0;
-		padding: 0;
-		border: 0;
-		background: rgb(10 8 6 / 0.94);
-	}
-	.lightbox[open] {
-		display: grid;
-		place-items: center;
-		animation: fade 220ms var(--ease-out-expo);
-	}
-	.lightbox img {
-		max-width: 100%;
-		max-height: 100dvh;
-		object-fit: contain;
-		animation: zoom 320ms var(--ease-spring);
-	}
-	.lightbox::backdrop {
-		background: transparent;
-	}
-	@keyframes fade {
-		from {
-			opacity: 0;
-		}
-	}
-	@keyframes zoom {
-		from {
-			transform: scale(0.92);
-		}
 	}
 </style>

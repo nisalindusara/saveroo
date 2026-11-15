@@ -84,6 +84,8 @@ export type PublicDeal = DealBase & {
 		note: string | null;
 	}[];
 	coupons: { code: string; kind: 'copy' | 'show_qr' | 'auto_apply' }[];
+	/** All photos in order (the first is `imageKey`, the cover). */
+	images: { key: string; ratio: number | null }[];
 	/** True when the deal works at every branch of the merchant. */
 	allBranches: boolean;
 	branches: PublicBranch[];

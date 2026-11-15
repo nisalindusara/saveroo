@@ -1,6 +1,6 @@
 // Tests for the deal texts in deal-text.ts.
 import { describe, expect, it } from 'vitest';
-import { cardValue, daysText, savingTag, savingText } from './deal-text';
+import { cardValue, daysShort, daysText, savingTag, savingText } from './deal-text';
 
 const none = { discountPercent: null, discountAmountLkr: null, maxSavingLkr: null, minSpendLkr: null, dealPriceLkr: null };
 
@@ -59,5 +59,17 @@ describe('cardValue', () => {
 
 	it('names the deal when there is no number', () => {
 		expect(cardValue({ ...base, dealType: 'bogo' }).main).toBe('Buy one, get one free');
+	});
+});
+
+describe('daysShort', () => {
+	it('names common patterns and collapses runs of days', () => {
+		expect(daysShort([])).toBe('Every day');
+		expect(daysShort([6, 7])).toBe('Weekends');
+		expect(daysShort([1, 2, 3, 4, 5])).toBe('Weekdays');
+		expect(daysShort([4, 5, 6])).toBe('Thu–Sat');
+		expect(daysShort([2])).toBe('Tue only');
+		expect(daysShort([1, 3, 5])).toBe('Mon, Wed, Fri');
+		expect(daysShort([1, 2, 3, 5])).toBe('Mon–Wed, Fri');
 	});
 });

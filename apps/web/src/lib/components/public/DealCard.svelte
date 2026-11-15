@@ -1,21 +1,20 @@
 <!--
 	Deal card, as in the owner's reference design. Two sizes: rows (fixed width, 172 px image) and the
 	grid (fills its cell, 236 px image). Image with one white badge (posters that do not fit are shown
-	whole on a blurred copy, never cropped); shop; bold title; place with the week strip; which cards;
+	whole on a blurred copy, never cropped); shop; bold title; place with the valid-days label ("Thu–Sat"); which cards;
 	then the price lines: tan value (crossed-out old price and a % pill when there is one) and, for
 	coupon deals, the purple "<value> with code X" line. The image shares a view-transition name with the
 	deal page poster, so it glides into place when opened.
 -->
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { cardValue, formatRs } from '@saveroo/shared/deal-text';
+	import { cardValue, daysShort, daysText, formatRs } from '@saveroo/shared/deal-text';
 	import { t } from '@saveroo/shared/i18n';
 	import { imageSrcset, imageUrl } from '@saveroo/shared/images';
 	import { providerShortName } from '@saveroo/shared/providers';
 	import type { PublicDealCard } from '@saveroo/shared';
-	import { CARD_SIZES, cardBadge, fillsFrame, posterColours } from '#lib/public/cards.js';
+	import { CARD_SIZES, cardBadge, fillsFrame, posterColours, validOn } from '#lib/public/cards.js';
 	import Icon from './Icon.svelte';
-	import WeekStrip from './WeekStrip.svelte';
 
 	let {
 		deal,
@@ -38,6 +37,7 @@
 	const row = $derived(width !== undefined);
 	const value = $derived(cardValue(deal));
 	const badge = $derived(cardBadge(deal, today));
+	const validToday = $derived(validOn(deal, today));
 	const fill = $derived(fillsFrame(deal));
 	const colours = $derived(posterColours(deal.merchant.name));
 	const banks = $derived(deal.providers.slice(0, 2).map(providerShortName).join(', ') + (deal.providers.length > 2 ? ` +${deal.providers.length - 2}` : ''));
@@ -104,7 +104,9 @@
 				{t('pub.card.online')}
 			{/if}
 		</span>
-		<WeekStrip days={deal.validDays} {today} />
+		<span class="days flex shrink-0 items-center gap-1 font-medium {validToday ? 'today' : ''}" title={t('pub.valid_on', { days: daysText(deal.validDays) })}>
+			<Icon name="calendar" size={14} stroke={2} />{daysShort(deal.validDays)}
+		</span>
 	</div>
 
 	<div class="meta mt-1 flex items-center gap-1.5">
@@ -283,6 +285,13 @@
 	.grid-card .badge {
 		font-size: 12px;
 		color: #23262a;
+	}
+	/* Valid-days label ("Thu–Sat"), green when the deal works today. */
+	.days {
+		color: var(--ink-2);
+	}
+	.days.today {
+		color: var(--leaf);
 	}
 	.ring {
 		position: absolute;

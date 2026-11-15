@@ -94,3 +94,23 @@ export function daysText(days: number[]): string {
 	const names = sorted.map((d) => t(`day.short.${d as 1}`));
 	return names.length === 1 ? names[0]! : `${names.slice(0, -1).join(', ')} ${t('deal.and')} ${names.at(-1)}`;
 }
+
+/**
+ * Short valid-days label for cards: "Every day", "Weekends", "Weekdays", "Thu–Sat" (3 or more days in a
+ * row), "Tue only", or a list like "Mon, Wed, Fri" (days are 1 = Mon to 7 = Sun).
+ */
+export function daysShort(days: number[]): string {
+	const sorted = [...new Set(days)].sort((a, b) => a - b);
+	if (sorted.length === 0 || sorted.length === 7) return t('deal.every_day');
+	if (sorted.join() === '6,7') return t('deal.weekends');
+	if (sorted.join() === '1,2,3,4,5') return t('deal.weekdays');
+	const name = (d: number) => t(`day.short.${d as 1}`);
+	if (sorted.length === 1) return t('deal.only', { day: name(sorted[0]!) });
+	const runs: number[][] = [];
+	for (const d of sorted) {
+		const last = runs.at(-1);
+		if (last && d === last.at(-1)! + 1) last.push(d);
+		else runs.push([d]);
+	}
+	return runs.map((r) => (r.length >= 3 ? `${name(r[0]!)}–${name(r.at(-1)!)}` : r.map(name).join(', '))).join(', ');
+}

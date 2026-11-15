@@ -1,6 +1,6 @@
 // Tests for the Colombo time helpers in time.ts.
 import { describe, expect, it } from 'vitest';
-import { colomboDayOfWeek, colomboDaysUntil, colomboLocalToUtc, formatColombo, utcToColomboLocal } from './time';
+import { colomboDayOfWeek, colomboDaysUntil, colomboLocalToUtc, colomboUpcomingDays, formatColombo, utcToColomboLocal } from './time';
 
 describe('Colombo time', () => {
 	it('converts Colombo wall-clock time to UTC', () => {
@@ -37,5 +37,14 @@ describe('Colombo time', () => {
 
 	it('formats for display in Colombo time', () => {
 		expect(formatColombo('2026-11-12T04:30:00.000Z')).toBe('12 Nov 2026, 10:00');
+	});
+});
+
+describe('colomboUpcomingDays', () => {
+	it('starts at the Colombo date, even late in the UTC day', () => {
+		// 2026-11-14 20:00 UTC is already Sunday 15 Nov, 01:30 in Colombo.
+		const days = colomboUpcomingDays(3, new Date('2026-11-14T20:00:00Z'));
+		expect(days.map((d) => d.date)).toEqual(['2026-11-15', '2026-11-16', '2026-11-17']);
+		expect(days[0]).toMatchObject({ dow: 7, day: 15, month: 'Nov' });
 	});
 });

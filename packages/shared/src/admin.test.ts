@@ -60,8 +60,13 @@ describe('dealInputSchema', () => {
 	});
 
 	it('rejects image keys that were not produced by an upload', () => {
-		const result = dealInputSchema.safeParse({ ...base, imageKey: '../../etc/passwd' });
-		expect(issuesToFields(result.error!)).toHaveProperty('imageKey');
+		const result = dealInputSchema.safeParse({ ...base, images: [{ key: '../../etc/passwd' }] });
+		expect(issuesToFields(result.error!)).toHaveProperty('images.0.key');
+	});
+
+	it('allows at most 10 photos', () => {
+		const images = Array.from({ length: 11 }, (_, i) => ({ key: `deals/2026-11/abcdefgh${i}`, ratio: 1 }));
+		expect(issuesToFields(dealInputSchema.safeParse({ ...base, images }).error!)).toHaveProperty('images');
 	});
 });
 
